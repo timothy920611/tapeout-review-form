@@ -1,0 +1,216 @@
+************************************************************************
+* auCdl Netlist:
+*
+* Library Name:  HS_COMP_6nm
+* Top Cell Name: COMP_STRARM_NPARALLEL
+* View Name:     schematic
+* Technology:    6-nm FinFET CMOS  (HP device flavor)
+* VDD:           0.9 V
+* Target BW:     3.0 GHz regeneration bandwidth  (max clock ~ 3 GHz)
+* Architecture:  Strong-ARM latch + N-parallel discharge paths (N=5)
+*                - Input diff pair (8-fin) integrates gm1*Vin on CC
+*                - Cross-coupled NMOS/PMOS regenerative latch
+*                - 5 input-driven parallel branches per side (M1A-E / M2A-E)
+*                  boost Gm_eff at Outp/Outm  -> ~50% faster regeneration
+*                - Auxiliary clock CLK1 gates branches OFF after settling
+*                  to remove the static power of the added paths
+* Method:        3-phase (sample / propagation / regeneration) timing per
+*                Abidi & Xu phase-plane analysis; CC < CL enforced so the
+*                propagation-phase cross-coupled pair stays a STABLE amp
+*                (avoids premature internal regeneration -> lower offset).
+* Ref:           [1] R. K. Siddharth et al., "A 1-V, 3-GHz Strong-Arm Latch
+*                    Voltage Comparator for High Speed Applications,"
+*                    IEEE TCAS-II, vol.67, no.12, Dec. 2020.  (N-parallel)
+*                [2] A. Abidi & H. Xu, "Understanding the Regenerative
+*                    Comparator Circuit," 2014.  (phase-plane / 3-phase)
+* Date:          2026-06-26
+************************************************************************
+
+* ---------------------------------------------------------------
+* Global process parameters  (6-nm FinFET HP flavor)
+* ---------------------------------------------------------------
+.PARAM
++ VDD=0.9
++ VCM=0.55         $ input common mode (see Abidi eq.13 window below)
++ VICM_LO=0.30     $ lower bound ~ Vt(M1,2)            (Abidi eq.13)
++ VICM_HI=0.60     $ upper bound ~ VDD - VGS(M3,4)     (Abidi eq.13)
++ FBW=3.0G         $ target regeneration bandwidth
++ NPAR=5           $ number of parallel discharge paths per side
++ HFIN=52N
++ WFIN=6N
++ LPOLY=6N
++ WEFF='2*HFIN+WFIN'      $ effective fin width = 2*Hfin + Wfin = 110n
++ NFIN_IN=8        $ input pair  : 8 fins (kT/C noise driven)
++ NFIN_PAR=8       $ parallel br.: width = input pair (Siddharth)
++ NFIN_EN=8        $ CLK1 enable : matched, so branch I set by input gm
++ NFIN_LAT=12      $ latch       : slightly larger than branch (fast regen)
++ NFIN_TAIL=16     $ tail        : carries summed bias current
++ NFIN_RST=4       $ precharge   : reset switches
+
+* ---------------------------------------------------------------
+* 6-nm FinFET primitive model mapping
+*   NMOS_6nm_HP -> nch_hp6   Lmin=6nm
+*   PMOS_6nm_HP -> pch_hp6   Lmin=6nm
+*
+* FinFET sizing rule (6-nm RDR):
+*   Weff = Nfin x (2*Hfin + Wfin) = Nfin x (2*52n + 6n) = Nfin x 110n
+*   Legal Nfin (foundry DRC): 1, 2, 3, 4, 6, 8, 12, 16, 24, 32
+*   W column = Nfin x 110n  (for SPICE compatibility); M= for arraying
+*       4 fins -> 440n    8 fins -> 880n
+*      12 fins -> 1320n  16 fins -> 1760n
+* ---------------------------------------------------------------
+
+* ---------------------------------------------------------------
+* Standard cells (reused for the auxiliary CLK1 pulse generator)
+* Weff = 2 fins x 110n = 220n per device
+* ---------------------------------------------------------------
+.SUBCKT INV_6N VDD VIN VOUT VSS
+MM0  VOUT VIN VSS  VSS  NMOS_6nm_HP W=220n L=6n NFIN=2 M=1
+MM1  VOUT VIN VDD  VDD  PMOS_6nm_HP W=220n L=6n NFIN=2 M=1
+.ENDS
+
+.SUBCKT NAND2_6N A B VDD VOUT VSS
+MM0  VOUT A   VDD  VDD  PMOS_6nm_HP W=220n L=6n NFIN=2 M=1
+MM1  VOUT B   VDD  VDD  PMOS_6nm_HP W=220n L=6n NFIN=2 M=1
+MM2  VOUT A   net0 VSS  NMOS_6nm_HP W=220n L=6n NFIN=2 M=2
+MM3  net0 B   VSS  VSS  NMOS_6nm_HP W=220n L=6n NFIN=2 M=2
+.ENDS
+
+.SUBCKT AND2_6N A B VDD VOUT VSS
+XI0  A B VDD net_nd VSS / NAND2_6N
+XI1  VDD net_nd VOUT VSS / INV_6N
+.ENDS
+
+* ---------------------------------------------------------------
+* CLK1_GEN_6N  --  Auxiliary-clock pulse generator (Siddharth Fig.3 inset)
+*   CLK1 = CLK AND (delayed, inverted CLK)  ->  high pulse at CLK rising
+*   edge of width ~ (odd) inverter-chain delay.  Tune the stage count so
+*   the ON-duration covers the WORST-CASE comparator delay; thereafter the
+*   N-parallel branches are switched OFF to remove their static power.
+*   (5 inverters = inversion + delay; add pairs of stages to widen pulse.)
+* ---------------------------------------------------------------
+.SUBCKT CLK1_GEN_6N CLK VDD CLK1 VSS
+XI_d0  VDD CLK    net_d0 VSS / INV_6N
+XI_d1  VDD net_d0 net_d1 VSS / INV_6N
+XI_d2  VDD net_d1 net_d2 VSS / INV_6N
+XI_d3  VDD net_d2 net_d3 VSS / INV_6N
+XI_d4  VDD net_d3 net_d4 VSS / INV_6N    $ net_d4 = ~CLK, delayed by 5 inv
+XI_and net_d4 CLK VDD CLK1 VSS / AND2_6N $ CLK1 = pulse (worst-case-delay wide)
+.ENDS
+
+* ===============================================================
+* COMP_STRARM_NPARALLEL  --  Strong-ARM latch with N=5 parallel paths
+* ===============================================================
+*   Ports:
+*     CLK   : main comparator clock   (LOW = reset/precharge, HIGH = eval)
+*     VDD   : 0.9 V supply
+*     VINP  : non-inverting analog input  (drives M1 + branches M1A-E)
+*     VINM  : inverting analog input      (drives M2 + branches M2A-E)
+*     Outp  : non-inverting output node   (precharged to VDD at reset)
+*     Outm  : inverting output node       (precharged to VDD at reset)
+*     VSS   : ground
+*
+*   Internal nodes:
+*     net_P, net_Q : differential-pair drains  (the "CC" nodes; sources of
+*                    the cross-coupled NMOS).  Precharged to VDD at reset.
+*     net_tail     : common source of input pair (drain of tail switch)
+*     net_clk1     : on-chip auxiliary clock (pulse) gating the branches
+*
+*   Three-phase operation (Abidi & Xu):
+*     RESET   (CLK=0): all of Outp,Outm,net_P,net_Q precharged to VDD,
+*                      erasing memory of previous decision.
+*     SAMPLE  : tail turns on; common-mode current discharges net_P/net_Q;
+*               differential current gm1*VID integrates on CC (-> initial
+*               condition vsmp for next phase).
+*     PROPAGATE: M3,M4 turn on; CC & CL ramp down together; with CC<CL the
+*                cross-coupled NMOS act as a STABLE amplifier (no runaway).
+*     REGEN   : Outp,Outm fall by |VtP|, PMOS M5,M6 turn on -> positive-
+*               feedback regeneration to the rails.  The N-parallel branches
+*               (gated by CLK1) inject extra discharge current here, raising
+*               Gm_eff ~ sqrt(N) and cutting the regeneration time ~50%.
+* ---------------------------------------------------------------
+.SUBCKT COMP_STRARM_NPARALLEL CLK VDD VINP VINM Outp Outm VSS
+
+* --- Auxiliary-clock generator (internal) ---
+XI_clk1  CLK VDD net_clk1 VSS / CLK1_GEN_6N
+
+* === Reset / precharge network (PMOS, ON when CLK=0) ===========
+*   Initialise the 4 state nodes to VDD so every conversion starts from
+*   the same point on the phase plane (zero history).
+MM_rst_op  Outp   CLK  VDD  VDD  PMOS_6nm_HP W=440n L=6n NFIN=4 M=1   $ precharge Outp -> VDD
+MM_rst_om  Outm   CLK  VDD  VDD  PMOS_6nm_HP W=440n L=6n NFIN=4 M=1   $ precharge Outm -> VDD
+MM_rst_p   net_P  CLK  VDD  VDD  PMOS_6nm_HP W=440n L=6n NFIN=4 M=1   $ precharge net_P -> VDD
+MM_rst_q   net_Q  CLK  VDD  VDD  PMOS_6nm_HP W=440n L=6n NFIN=4 M=1   $ precharge net_Q -> VDD
+
+* === Tail current switch =======================================
+*   Sets the common-mode bias current; gate = CLK.
+MM_tail    net_tail CLK  VSS  VSS  NMOS_6nm_HP W=1760n L=6n NFIN=16 M=2  $ tail switch
+
+* === Input differential pair (8 fins, low noise) ===============
+*   SAMPLE/PROPAGATE: convert VID into differential current gm1*VID that
+*   integrates on CC (net_P/net_Q).  Keep VCM within Abidi eq.13 window
+*   (0.30 V < VCM < 0.60 V) so M1,M2 stay in saturation through PROPAGATE
+*   -> full internal gain (~5..10x), minimum input-referred offset/noise.
+MM_in1     net_P  VINP net_tail VSS  NMOS_6nm_HP W=880n L=6n NFIN=8 M=2  $ M1 : amplify (sample/prop)
+MM_in2     net_Q  VINM net_tail VSS  NMOS_6nm_HP W=880n L=6n NFIN=8 M=2  $ M2 : amplify (sample/prop)
+
+* === Cross-coupled NMOS latch (12 fins) ========================
+*   PROPAGATE: behaves as a stable amplifier while CC<CL (Abidi eq.8).
+*   REGEN:     provides the lower half of the regenerative inverters.
+*   Sources tie to net_P/net_Q (the CC nodes), NOT to VSS.
+MM_n3      Outp   Outm net_P VSS  NMOS_6nm_HP W=1320n L=6n NFIN=12 M=2  $ M3 : regen NMOS (gate<-Outm)
+MM_n4      Outm   Outp net_Q VSS  NMOS_6nm_HP W=1320n L=6n NFIN=12 M=2  $ M4 : regen NMOS (gate<-Outp)
+
+* === Cross-coupled PMOS latch (12 fins) ========================
+*   REGEN: turns on when Outp/Outm fall by |VtP|; this is the unstable
+*   (right-half-plane) pole sreg = +gm5/CL that drives outputs to rails.
+MM_p5      Outp   Outm VDD  VDD  PMOS_6nm_HP W=1320n L=6n NFIN=12 M=2   $ M5 : regen PMOS (gate<-Outm)
+MM_p6      Outm   Outp VDD  VDD  PMOS_6nm_HP W=1320n L=6n NFIN=12 M=2   $ M6 : regen PMOS (gate<-Outp)
+
+* === N=5 PARALLEL DISCHARGE PATHS ==============================
+*   Per Siddharth: each branch = [CLK1 enable] in series with an
+*   input-driven device, adding an independent discharge path from the
+*   output node to VSS.  Total output-node current ~ (N+1) branches and
+*   Gm_eff ~ sqrt(N)*gm1,2  ->  ~50% faster regeneration at N=5.
+*   Branch width = input-pair width (8 fins).  Enable width matched (8 fins)
+*   so branch current is set by input-device gm, not by switch Ron.
+*   CLK1 (pulse) turns the branches OFF after settling -> no static power.
+*
+*   --- Outp side : driven by VINP  (augments the M1 / Outp resolution) ---
+MM_EN1A   Outp   net_clk1 net_b1a VSS  NMOS_6nm_HP W=880n L=6n NFIN=8 M=2  $ branch A enable
+MM_M1A    net_b1a VINP    VSS     VSS  NMOS_6nm_HP W=880n L=6n NFIN=8 M=2  $ M1A : parallel path A
+MM_EN1B   Outp   net_clk1 net_b1b VSS  NMOS_6nm_HP W=880n L=6n NFIN=8 M=2  $ branch B enable
+MM_M1B    net_b1b VINP    VSS     VSS  NMOS_6nm_HP W=880n L=6n NFIN=8 M=2  $ M1B : parallel path B
+MM_EN1C   Outp   net_clk1 net_b1c VSS  NMOS_6nm_HP W=880n L=6n NFIN=8 M=2  $ branch C enable
+MM_M1C    net_b1c VINP    VSS     VSS  NMOS_6nm_HP W=880n L=6n NFIN=8 M=2  $ M1C : parallel path C
+MM_EN1D   Outp   net_clk1 net_b1d VSS  NMOS_6nm_HP W=880n L=6n NFIN=8 M=2  $ branch D enable
+MM_M1D    net_b1d VINP    VSS     VSS  NMOS_6nm_HP W=880n L=6n NFIN=8 M=2  $ M1D : parallel path D
+MM_EN1E   Outp   net_clk1 net_b1e VSS  NMOS_6nm_HP W=880n L=6n NFIN=8 M=2  $ branch E enable
+MM_M1E    net_b1e VINP    VSS     VSS  NMOS_6nm_HP W=880n L=6n NFIN=8 M=2  $ M1E : parallel path E
+*
+*   --- Outm side : driven by VINM  (augments the M2 / Outm resolution) ---
+MM_EN2A   Outm   net_clk1 net_b2a VSS  NMOS_6nm_HP W=880n L=6n NFIN=8 M=2  $ branch A enable
+MM_M2A    net_b2a VINM    VSS     VSS  NMOS_6nm_HP W=880n L=6n NFIN=8 M=2  $ M2A : parallel path A
+MM_EN2B   Outm   net_clk1 net_b2b VSS  NMOS_6nm_HP W=880n L=6n NFIN=8 M=2  $ branch B enable
+MM_M2B    net_b2b VINM    VSS     VSS  NMOS_6nm_HP W=880n L=6n NFIN=8 M=2  $ M2B : parallel path B
+MM_EN2C   Outm   net_clk1 net_b2c VSS  NMOS_6nm_HP W=880n L=6n NFIN=8 M=2  $ branch C enable
+MM_M2C    net_b2c VINM    VSS     VSS  NMOS_6nm_HP W=880n L=6n NFIN=8 M=2  $ M2C : parallel path C
+MM_EN2D   Outm   net_clk1 net_b2d VSS  NMOS_6nm_HP W=880n L=6n NFIN=8 M=2  $ branch D enable
+MM_M2D    net_b2d VINM    VSS     VSS  NMOS_6nm_HP W=880n L=6n NFIN=8 M=2  $ M2D : parallel path D
+MM_EN2E   Outm   net_clk1 net_b2e VSS  NMOS_6nm_HP W=880n L=6n NFIN=8 M=2  $ branch E enable
+MM_M2E    net_b2e VINM    VSS     VSS  NMOS_6nm_HP W=880n L=6n NFIN=8 M=2  $ M2E : parallel path E
+
+* === Node capacitances (phase-plane physics) ===================
+*   CC on the internal nodes (Abidi: integrates gm1*VID over SAMPLE).
+*   CL on the outputs (Abidi: regeneration load, sreg = +gm5/CL).
+*   IMPORTANT: CC < CL is enforced so the PROPAGATE-phase cross-coupled
+*   NMOS act as a stable amplifier rather than regenerating early.
+CC_cc_p   net_P VSS  4.0f  $[MOMCAP_6nm_M4_M7] M=1   $ CC+  (< CL)
+CC_cc_n   net_Q VSS  4.0f  $[MOMCAP_6nm_M4_M7] M=1   $ CC-  (< CL)
+CC_cl_p   Outp  VSS  6.0f  $[MOMCAP_6nm_M4_M7] M=1   $ CL+
+CC_cl_n   Outm  VSS  6.0f  $[MOMCAP_6nm_M4_M7] M=1   $ CL-
+.ENDS
+
+* ============================================================
+* END OF FILE  (schematic view)
+* ============================================================

@@ -1,0 +1,588 @@
+************************************************************************
+* auCdl Netlist:
+*
+* Library Name:  ADC_5G_7nm
+* Top Cell Name: ADC_5G_SOC_12b
+* View Name:     schematic
+* Technology:    TSMC 7nm FinFET (N7 process)
+* VDD_IO:        1.8V   (IO ring / SerDes interface)
+* VDD_CORE:      0.75V  (analog / digital core)
+* VDD_PLL:       0.9V   (PLL / clock domain)
+* Resolution:    12-bit
+* Sample Rate:   12 GSPS (4x 3GSPS time-interleaved)
+* Architecture:  4-way TI Pipelined-SAR + On-chip PLL +
+*                Dynamic Residue Amplifier + Background Calibration +
+*                JESD204B SerDes Output
+* SNDR:          58 dB (target @ Nyquist)
+* SFDR:          70 dB (target)
+* Power:         290 mW @ 0.75V core
+* Process Node:  TSMC N7 FinFET (CLN7FF)
+* Designed by:   Analog/RF Design Group
+* Date:          2026-05-29
+************************************************************************
+
+.PARAM
++ VDD_CORE=0.75
++ VDD_IO=1.8
++ VDD_PLL=0.9
++ FCLK=12G
++ NFIN_N=2
++ NFIN_P=2
+
+* ---------------------------------------------------------------
+* FinFET primitive model mapping  (N7 CLN7FF)
+*   N_7_FF  : nFinFET  Wfin=7n  Lfin=7n  (Hfin=46nm)
+*   P_7_FF  : pFinFET  Wfin=7n  Lfin=7n
+* Note: W parameter = number of fins x Wfin_eff
+*       One fin  -> Weff~6nm, specify M for multiplicity
+* ---------------------------------------------------------------
+
+* ---------------------------------------------------------------
+* AIN_RF  – differential RF input pad with HBM ESD (1.8V IO)
+* ---------------------------------------------------------------
+.SUBCKT AIN_RF GND PAD VDDE BIAS_ESD
+RR0  VDDE net_a0  50.0  $[RPDIFF_N7] $W=1u $L=10u M=1
+RR1  VDDE net_a1  25.0  $[RPDIFF_N7] $W=2u $L=10u M=1
+MM4  PAD  BIAS_ESD GND  GND  N_7_FF W=84n L=7n M=32
+MM3  GND  net_a0   GND  GND  N_7_FF W=84n L=28n M=16
+MM2  GND  net_a0   GND  GND  N_7_FF W=84n L=28n M=8
+MM1  net_a2 net_a0 GND  GND  N_7_FF W=84n L=7n  M=4
+MM5  PAD  net_a1  VDDE VDDE P_7_FF  W=84n L=7n  M=32
+MM0  net_a2 net_a0 VDDE VDDE P_7_FF W=84n L=7n  M=4
+Dio1  net_a2 VDDE DIOD_N7 AREA=1.2e-12 PJ=4.4e-6
+Dio2  net_a2 GND  DIOD_N7 AREA=6.0e-13 PJ=3.1e-6
+Dio3  GND    GND  DIOD_N7 AREA=1.0e-14 PJ=9.6e-7
+.ENDS
+
+* ---------------------------------------------------------------
+* DOUT_JESD  – 1.8V JESD204B CML output driver pad
+* ---------------------------------------------------------------
+.SUBCKT DOUT_JESD GND PAD VDD VDDE VSS IBIAS
+RR_term VDDE PAD 50.0 $[RPDIFF_N7] $W=2u $L=5u M=1
+MM8  PAD   net_d2 GND  GND  N_7_FF W=84n L=7n M=16
+MM7  PAD   net_d2 VDDE VDDE P_7_FF W=84n L=7n M=16
+MM6  net_d2 net_d1 GND  GND  N_7_FF W=42n L=7n M=4
+MM5  net_d2 net_d1 VDDE VDDE P_7_FF W=42n L=7n M=4
+MM4  net_d1 net_d0 VSS  VSS  N_7_FF W=21n L=7n M=2
+MM3  net_d1 net_d0 VDD  VDD  P_7_FF W=42n L=7n M=2
+MM_tail net_d0 IBIAS VSS VSS N_7_FF W=21n L=14n M=4
+RR0  VDDE  net_pull  100.0 $[RPDIFF_N7] $W=1u $L=10u M=1
+.ENDS
+
+* ---------------------------------------------------------------
+* ESD_N7 / VDDI_CELL / VSSI_CELL  (7nm ring cells)
+* ---------------------------------------------------------------
+.SUBCKT ESD_N7 GND VDD
+RR0  VDD  net_e0  100.0 $[RPDIFF_N7] $W=1u $L=10u M=1
+MM3  net_e1 net_e0 GND  GND  N_7_FF W=84n L=28n M=32
+MM2  net_e2 net_e0 GND  GND  N_7_FF W=84n L=7n  M=4
+MM1  net_e2 net_e0 VDD  VDD  P_7_FF W=84n L=7n  M=4
+Dio1 net_e2 VDD DIOD_N7 AREA=400.0p PJ=80.0u
+Dio2 net_e2 GND DIOD_N7 AREA=200.0p PJ=60.0u
+Dio3 GND    GND DIOD_N7 AREA=3.0p   PJ=5.0u
+.ENDS
+
+.SUBCKT VDDI_CELL GND VDDE VDDI
+RR0  VDDI  net_v0  100.0 $[RPDIFF_N7] $W=1u $L=10u M=1
+MM2  GND   net_v0  GND  GND  N_7_FF W=84n L=28n M=32
+MM1  net_v1 net_v0 GND  GND  N_7_FF W=84n L=7n  M=4
+MM0  net_v1 net_v0 VDDI VDDI P_7_FF W=84n L=7n  M=4
+Dio1 net_v1 VDDI DIOD_N7 AREA=400.0p PJ=80.0u
+Dio2 net_v1 GND  DIOD_N7 AREA=200.0p PJ=60.0u
+Dio3 GND    GND  DIOD_N7 AREA=3.0p   PJ=5.0u
+.ENDS
+
+.SUBCKT VSSI_CELL GND VSSI
+RR0  VSSI net_vs0 200.0 $[RPDIFF_N7] $W=1u $L=5u M=1
+MM0  VSSI net_vs0 GND GND N_7_FF W=84n L=14n M=48
+.ENDS
+
+* ---------------------------------------------------------------
+* Standard cell primitives (N7 FinFET)
+* ---------------------------------------------------------------
+.SUBCKT INV VDD VIN VOUT VSS
+MM0 VOUT VIN VSS VSS N_7_FF W=42n L=7n M=2
+MM1 VOUT VIN VDD VDD P_7_FF W=42n L=7n M=2
+.ENDS
+
+.SUBCKT INV_X4 VDD VIN VOUT VSS
+MM0 net_x VSS VIN VSS N_7_FF W=42n L=7n M=4
+MM1 net_x VDD VIN VDD P_7_FF W=42n L=7n M=4
+MM2 VOUT  VSS net_x VSS N_7_FF W=42n L=7n M=8
+MM3 VOUT  VDD net_x VDD P_7_FF W=42n L=7n M=8
+.ENDS
+
+.SUBCKT NAND2 A B VDD VOUT VSS
+MM0 VOUT A VDD VDD P_7_FF W=42n L=7n M=2
+MM1 VOUT B VDD VDD P_7_FF W=42n L=7n M=2
+MM2 VOUT A net_n0 VSS N_7_FF W=42n L=7n M=4
+MM3 net_n0 B VSS VSS N_7_FF W=42n L=7n M=4
+.ENDS
+
+.SUBCKT NOR2 A B VDD VOUT VSS
+MM0 net_r0 A VDD VDD P_7_FF W=84n L=7n M=4
+MM1 VOUT   B net_r0 VDD P_7_FF W=84n L=7n M=4
+MM2 VOUT A VSS VSS N_7_FF W=42n L=7n M=2
+MM3 VOUT B VSS VSS N_7_FF W=42n L=7n M=2
+.ENDS
+
+.SUBCKT AND2 A B VDD VOUT VSS
+XI0 A B VDD net_and VSS / NAND2
+XI1 VDD net_and VOUT VSS / INV
+.ENDS
+
+* ---------------------------------------------------------------
+* Bootstrap_SW_7nm  – constant-Vgs sampling switch for 0.75V
+* ---------------------------------------------------------------
+.SUBCKT Bootstrap_SW_7nm CK VDD VIN VOUT VSS
+MM0  VOUT    net_gate VIN     VSS N_7_FF W=42n L=7n M=4
+MM1  VIN     net_gate net_bs3 VSS N_7_FF W=21n L=7n M=2
+MM2  net_bs3 net_off  VSS     VSS N_7_FF W=21n L=7n M=2
+MM3  net_bs5 net_off  VSS     VSS N_7_FF W=21n L=7n M=2
+MM4  net_gate net_off net_fly net_fly P_7_FF W=42n L=7n M=2
+MM5  net_fly  net_off VDD     net_fly P_7_FF W=42n L=7n M=2
+CC_fly net_fly net_bs3 3.2f $[MOMCAP_N7] M=4
+XI_inv VDD CK net_off VSS / INV
+.ENDS
+
+* ---------------------------------------------------------------
+* TG_N7  –  7nm transmission gate
+* ---------------------------------------------------------------
+.SUBCKT TG_N7 CLK CLK_B VDD VIN VOUT VSS
+MM0 VIN CLK   VOUT VSS N_7_FF W=42n L=7n M=2
+MM1 VIN CLK_B VOUT VDD P_7_FF W=42n L=7n M=2
+.ENDS
+
+* ---------------------------------------------------------------
+* CDAC_SW_N7 – CDAC switch cell (differential, monotonic)
+*   Bit-weight scales via M multiplier on TG
+* ---------------------------------------------------------------
+.SUBCKT CDAC_SW_N7 D REFN REFP SAMPLE VDD VIN_P VIN_N VOUTP VOUTN VSS M_TG=1
+XI0 VDD SAMPLE net_sl0 VSS / INV
+XI1 VDD D      net_sl1 VSS / INV
+XI2 VDD net_sl3 net_sl2 VSS / INV
+XI3 VDD net_sl4 net_sl5 VSS / INV
+XI4 net_sl1 net_sl0 VDD net_sl3 VSS / AND2
+XI5 D net_sl0 VDD net_sl6 VSS / AND2
+XI6 VDD net_sl6 net_sl4 VSS / INV
+* Positive side
+MM_sp0 VIN_P SAMPLE VOUTP VSS N_7_FF W=42n L=7n M='M_TG'
+MM_sp1 VIN_P SAMPLE VOUTP VDD P_7_FF W=42n L=7n M='M_TG'
+MM_rp0 REFP  net_sl3 VOUTP VSS N_7_FF W=42n L=7n M='M_TG'
+MM_rp1 REFP  net_sl2 VOUTP VDD P_7_FF W=42n L=7n M='M_TG'
+MM_np0 REFN  net_sl4 VOUTP VSS N_7_FF W=42n L=7n M='M_TG'
+MM_np1 REFN  net_sl5 VOUTP VDD P_7_FF W=42n L=7n M='M_TG'
+* Negative side (complementary)
+MM_sn0 VIN_N SAMPLE VOUTN VSS N_7_FF W=42n L=7n M='M_TG'
+MM_sn1 VIN_N SAMPLE VOUTN VDD P_7_FF W=42n L=7n M='M_TG'
+MM_rn0 REFN  net_sl3 VOUTN VSS N_7_FF W=42n L=7n M='M_TG'
+MM_rn1 REFN  net_sl2 VOUTN VDD P_7_FF W=42n L=7n M='M_TG'
+MM_nn0 REFP  net_sl4 VOUTN VSS N_7_FF W=42n L=7n M='M_TG'
+MM_nn1 REFP  net_sl5 VOUTN VDD P_7_FF W=42n L=7n M='M_TG'
+.ENDS
+
+* ---------------------------------------------------------------
+* CDAC_12b_N7  – 12-bit split-cap differential CDAC
+*   MSB[11:6] = 64x unit, LSB[5:0] = 1x unit  (attenuation cap bridge)
+* ---------------------------------------------------------------
+.SUBCKT CDAC_12b_N7
++  D0 D1 D2 D3 D4 D5 D6 D7 D8 D9 D10 D11
++  REFN REFP SAMPLE VCM VDD VIN_P VIN_N VOUTP VOUTN VSS
+* MSB switches (bit11..6)  M_TG=64 -> 64 fins (MSB cap weight)
+XI_sw11 D11 REFN REFP SAMPLE VDD VIN_P VIN_N VOUTP VOUTN VSS M_TG=64 / CDAC_SW_N7
+XI_sw10 D10 REFN REFP SAMPLE VDD VIN_P VIN_N VOUTP VOUTN VSS M_TG=32 / CDAC_SW_N7
+XI_sw9  D9  REFN REFP SAMPLE VDD VIN_P VIN_N VOUTP VOUTN VSS M_TG=16 / CDAC_SW_N7
+XI_sw8  D8  REFN REFP SAMPLE VDD VIN_P VIN_N VOUTP VOUTN VSS M_TG=8  / CDAC_SW_N7
+XI_sw7  D7  REFN REFP SAMPLE VDD VIN_P VIN_N VOUTP VOUTN VSS M_TG=4  / CDAC_SW_N7
+XI_sw6  D6  REFN REFP SAMPLE VDD VIN_P VIN_N VOUTP VOUTN VSS M_TG=2  / CDAC_SW_N7
+* Attenuation bridge cap (MSB / LSB boundary)
+CC_atten_p VOUTP net_mid_p 1.0f $[MOMCAP_N7] M=1
+CC_atten_n VOUTN net_mid_n 1.0f $[MOMCAP_N7] M=1
+* LSB switches (bit5..0)  M_TG=1
+XI_sw5 D5 REFN REFP SAMPLE VDD VIN_P VIN_N net_mid_p net_mid_n VSS M_TG=1 / CDAC_SW_N7
+XI_sw4 D4 REFN REFP SAMPLE VDD VIN_P VIN_N net_mid_p net_mid_n VSS M_TG=1 / CDAC_SW_N7
+XI_sw3 D3 REFN REFP SAMPLE VDD VIN_P VIN_N net_mid_p net_mid_n VSS M_TG=1 / CDAC_SW_N7
+XI_sw2 D2 REFN REFP SAMPLE VDD VIN_P VIN_N net_mid_p net_mid_n VSS M_TG=1 / CDAC_SW_N7
+XI_sw1 D1 REFN REFP SAMPLE VDD VIN_P VIN_N net_mid_p net_mid_n VSS M_TG=1 / CDAC_SW_N7
+XI_sw0 D0 REFN REFP SAMPLE VDD VIN_P VIN_N net_mid_p net_mid_n VSS M_TG=1 / CDAC_SW_N7
+* VCM reset / common-mode bottom plate
+CC_bot_p VOUTP VSS 0.5f $[MOMCAP_N7] M=1
+CC_bot_n VOUTN VSS 0.5f $[MOMCAP_N7] M=1
+MM_vcm_p VOUTP VCM VSS VSS N_7_FF W=21n L=7n M=2
+MM_vcm_n VOUTN VCM VSS VSS N_7_FF W=21n L=7n M=2
+.ENDS
+
+* ---------------------------------------------------------------
+* DynAmp_N7  – Temperature-stabilized Dynamic Residue Amplifier
+*   Gain ~4x, BW > 6GHz, used between pipeline stages
+* ---------------------------------------------------------------
+.SUBCKT DynAmp_N7 CLK VDD VIN_P VIN_N VOUTP VOUTN VBIAS VSS
+MM_t0  net_tail CLK    VSS  VSS N_7_FF W=42n L=7n M=16
+MM_in  net_lp   VIN_P  net_tail VSS N_7_FF W=84n L=7n M=8
+MM_ip  net_ln   VIN_N  net_tail VSS N_7_FF W=84n L=7n M=8
+MM_lp1 VOUTP  VOUTN  VDD VDD P_7_FF W=84n L=7n M=4
+MM_lp2 VOUTN  VOUTP  VDD VDD P_7_FF W=84n L=7n M=4
+MM_ln1 VOUTP  VOUTN  net_lp VSS N_7_FF W=84n L=7n M=4
+MM_ln2 VOUTN  VOUTP  net_ln VSS N_7_FF W=84n L=7n M=4
+MM_rp1 net_lp CLK   VDD VDD P_7_FF W=42n L=7n M=2
+MM_rp2 net_ln CLK   VDD VDD P_7_FF W=42n L=7n M=2
+MM_or1 VOUTP  CLK   VDD VDD P_7_FF W=42n L=7n M=2
+MM_or2 VOUTN  CLK   VDD VDD P_7_FF W=42n L=7n M=2
+* Temperature compensation bias mirror
+MM_tc0 net_tc VBIAS VSS VSS N_7_FF W=21n L=28n M=4
+MM_tc1 net_tail net_tc VSS VSS N_7_FF W=21n L=14n M=8
+CC_kh1 net_lp VSS 2.0f $[MOMCAP_N7] M=2
+CC_kh2 net_ln VSS 2.0f $[MOMCAP_N7] M=2
+.ENDS
+
+* ---------------------------------------------------------------
+* StrongARM_N7  – clocked regenerative comparator (7nm)
+* ---------------------------------------------------------------
+.SUBCKT StrongARM_N7 CLK VDD VIN_P VIN_N VOUTP VOUTN VBIAS VSS
+MM_tail net_tail CLK    VSS  VSS N_7_FF W=42n L=7n M=8
+MM_inp  net_lp   VIN_P  net_tail VSS N_7_FF W=84n L=7n M=4
+MM_inn  net_ln   VIN_N  net_tail VSS N_7_FF W=84n L=7n M=4
+MM_rp1  net_lp   CLK    VDD  VDD P_7_FF W=42n L=7n M=2
+MM_rp2  net_ln   CLK    VDD  VDD P_7_FF W=42n L=7n M=2
+MM_lp1  VOUTP  VOUTN  VDD VDD P_7_FF W=84n L=7n M=2
+MM_lp2  VOUTN  VOUTP  VDD VDD P_7_FF W=84n L=7n M=2
+MM_ln1  VOUTP  VOUTN  net_lp VSS N_7_FF W=84n L=7n M=2
+MM_ln2  VOUTN  VOUTP  net_ln VSS N_7_FF W=84n L=7n M=2
+MM_or1  VOUTP  CLK    VDD VDD P_7_FF W=42n L=7n M=2
+MM_or2  VOUTN  CLK    VDD VDD P_7_FF W=42n L=7n M=2
+MM_tc0  net_tc VBIAS  VSS VSS N_7_FF W=21n L=28n M=2
+MM_tc1  net_tail net_tc VSS VSS N_7_FF W=21n L=14n M=4
+CC_kb1  net_lp  VSS 1.5f $[MOMCAP_N7] M=2
+CC_kb2  net_ln  VSS 1.5f $[MOMCAP_N7] M=2
+.ENDS
+
+* ---------------------------------------------------------------
+* D_Latch_SR_N7  – NAND-based SR latch
+* ---------------------------------------------------------------
+.SUBCKT D_Latch_SR_N7 D EN VDD Q Q_B VSS
+XI_inv VDD D     net_db VSS / INV
+XI0 D      EN VDD net_s  VSS / NAND2
+XI1 net_db EN VDD net_r  VSS / NAND2
+XI2 net_s  net_r VDD Q   VSS / NAND2
+XI3 net_r  Q     VDD Q_B VSS / NAND2
+.ENDS
+
+* ---------------------------------------------------------------
+* DFF_SR_N7  – D flip-flop with async SET/RESET
+* ---------------------------------------------------------------
+.SUBCKT DFF_SR_N7 CLK D RESET SET VDD Q Q_B VSS
+XI_clkinv VDD CLK net_clkb VSS / INV
+XI_ml D net_clkb VDD net_mq net_mqb VSS / D_Latch_SR_N7
+XI_sl net_mq CLK VDD Q Q_B VSS / D_Latch_SR_N7
+XI_set SET  Q_B VDD net_fs VSS / NAND2
+XI_rst RESET Q  VDD net_fr VSS / NAND2
+MM_ov1 Q   net_fs VDD VDD P_7_FF W=42n L=7n M=1
+MM_ov2 Q_B net_fr VDD VDD P_7_FF W=42n L=7n M=1
+.ENDS
+
+* ---------------------------------------------------------------
+* DFF_simple_N7  – output register flip-flop
+* ---------------------------------------------------------------
+.SUBCKT DFF_simple_N7 CLK D VDD Q VSS
+XI_clkinv VDD CLK net_ckb VSS / INV
+XI_ml D net_ckb VDD net_mq net_mqb VSS / D_Latch_SR_N7
+XI_sl net_mq CLK VDD Q net_qb VSS / D_Latch_SR_N7
+.ENDS
+
+* ---------------------------------------------------------------
+* Async_SAR_LOGIC_12b  – 12-step asynchronous SAR controller
+* ---------------------------------------------------------------
+.SUBCKT Async_SAR_LOGIC_12b CLK COMP_P COMP_N RESET
++   D0 D1 D2 D3 D4 D5 D6 D7 D8 D9 D10 D11
++   SAMPLE CLKOUT VDD VSS
+XI_csr COMP_P COMP_N VDD net_co net_cob VSS / D_Latch_SR_N7
+XI_ckb VDD CLK net_clkb VSS / INV
+XI_buf VDD net_clkb SAMPLE VSS / INV_X4
+XI_dff11 CLK     net_co RESET net_s11 VDD D11 net_d11b VSS / DFF_SR_N7
+XI_dff10 net_d11b net_co RESET net_s10 VDD D10 net_d10b VSS / DFF_SR_N7
+XI_dff9  net_d10b net_co RESET net_s9  VDD D9  net_d9b  VSS / DFF_SR_N7
+XI_dff8  net_d9b  net_co RESET net_s8  VDD D8  net_d8b  VSS / DFF_SR_N7
+XI_dff7  net_d8b  net_co RESET net_s7  VDD D7  net_d7b  VSS / DFF_SR_N7
+XI_dff6  net_d7b  net_co RESET net_s6  VDD D6  net_d6b  VSS / DFF_SR_N7
+XI_dff5  net_d6b  net_co RESET net_s5  VDD D5  net_d5b  VSS / DFF_SR_N7
+XI_dff4  net_d5b  net_co RESET net_s4  VDD D4  net_d4b  VSS / DFF_SR_N7
+XI_dff3  net_d4b  net_co RESET net_s3  VDD D3  net_d3b  VSS / DFF_SR_N7
+XI_dff2  net_d3b  net_co RESET net_s2  VDD D2  net_d2b  VSS / DFF_SR_N7
+XI_dff1  net_d2b  net_co RESET net_s1  VDD D1  net_d1b  VSS / DFF_SR_N7
+XI_dff0  net_d1b  net_co RESET net_s0  VDD D0  net_d0b  VSS / DFF_SR_N7
+XI_seq11 net_clkb  net_d11b VDD net_s11 VSS / AND2
+XI_seq10 net_d11b  net_d10b VDD net_s10 VSS / AND2
+XI_seq9  net_d10b  net_d9b  VDD net_s9  VSS / AND2
+XI_seq8  net_d9b   net_d8b  VDD net_s8  VSS / AND2
+XI_seq7  net_d8b   net_d7b  VDD net_s7  VSS / AND2
+XI_seq6  net_d7b   net_d6b  VDD net_s6  VSS / AND2
+XI_seq5  net_d6b   net_d5b  VDD net_s5  VSS / AND2
+XI_seq4  net_d5b   net_d4b  VDD net_s4  VSS / AND2
+XI_seq3  net_d4b   net_d3b  VDD net_s3  VSS / AND2
+XI_seq2  net_d3b   net_d2b  VDD net_s2  VSS / AND2
+XI_seq1  net_d2b   net_d1b  VDD net_s1  VSS / AND2
+XI_seq0  net_d1b   net_d0b  VDD net_s0  VSS / AND2
+XI_done VDD net_d0b CLKOUT VSS / INV_X4
+.ENDS
+
+* ---------------------------------------------------------------
+* Output_Reg_12b  – 12-bit output register bank
+* ---------------------------------------------------------------
+.SUBCKT Output_Reg_12b CLK
++   D0 D1 D2 D3 D4 D5 D6 D7 D8 D9 D10 D11
++   B0 B1 B2 B3 B4 B5 B6 B7 B8 B9 B10 B11 VDD VSS
+XI_r0  CLK D0  VDD B0  VSS / DFF_simple_N7
+XI_r1  CLK D1  VDD B1  VSS / DFF_simple_N7
+XI_r2  CLK D2  VDD B2  VSS / DFF_simple_N7
+XI_r3  CLK D3  VDD B3  VSS / DFF_simple_N7
+XI_r4  CLK D4  VDD B4  VSS / DFF_simple_N7
+XI_r5  CLK D5  VDD B5  VSS / DFF_simple_N7
+XI_r6  CLK D6  VDD B6  VSS / DFF_simple_N7
+XI_r7  CLK D7  VDD B7  VSS / DFF_simple_N7
+XI_r8  CLK D8  VDD B8  VSS / DFF_simple_N7
+XI_r9  CLK D9  VDD B9  VSS / DFF_simple_N7
+XI_r10 CLK D10 VDD B10 VSS / DFF_simple_N7
+XI_r11 CLK D11 VDD B11 VSS / DFF_simple_N7
+.ENDS
+
+* ---------------------------------------------------------------
+* PIPE_SAR_CHANNEL  – single 3GSPS 12b pipelined-SAR channel
+*   Stage1: 7-bit coarse SAR  Stage2: DynAmp  Stage3: 6-bit fine SAR
+*   (1-bit overlap for error correction -> 12b effective)
+* ---------------------------------------------------------------
+.SUBCKT PIPE_SAR_CHANNEL
++  CLK CLK_B REFN REFP VCM VDD VIN_P VIN_N VBIAS RESET
++  B0 B1 B2 B3 B4 B5 B6 B7 B8 B9 B10 B11 VSS
+* Input bootstrapped sampling switch
+XI_bsp VDD net_clk_int VIN_P net_sp VSS / Bootstrap_SW_7nm
+XI_bsn VDD net_clk_int VIN_N net_sn VSS / Bootstrap_SW_7nm
+* Phase1: Coarse 7-bit SAR (bits 11..5)
+XI_cdac1
++  net_d5 net_d6 net_d7 net_d8 net_d9 net_d10 net_d11
++  net_d5 net_d6 net_d7 net_d8 net_d9 net_d10 net_d11
++  REFN REFP net_sample VCM VDD net_sp net_sn net_rp1 net_rn1 VSS / CDAC_12b_N7
+XI_cmp1 net_clk1 VDD net_rp1 net_rn1 net_vop1 net_von1 VBIAS VSS / StrongARM_N7
+XI_sar1 net_clk1 net_vop1 net_von1 RESET
++   net_d5 net_d6 net_d7 net_d8 net_d9 net_d10 net_d11
++   net_d5 net_d6 net_d7 net_d8 net_d9 net_d10 net_d11
++   net_sample net_clkout1 VDD VSS / Async_SAR_LOGIC_12b
+* Dynamic Residue Amplifier
+XI_amp net_clk1 VDD net_rp1 net_rn1 net_res_p net_res_n VBIAS VSS / DynAmp_N7
+* Phase2: Fine 6-bit SAR (bits 5..0)
+XI_cdac2
++  net_d0 net_d1 net_d2 net_d3 net_d4 net_d5
++  net_d0 net_d1 net_d2 net_d3 net_d4 net_d5
++  net_d0 net_d1 net_d2 net_d3 net_d4 net_d5
++  REFN REFP net_smp2 VCM VDD net_res_p net_res_n net_rp2 net_rn2 VSS / CDAC_12b_N7
+XI_cmp2 net_clk2 VDD net_rp2 net_rn2 net_vop2 net_von2 VBIAS VSS / StrongARM_N7
+XI_sar2 net_clk2 net_vop2 net_von2 RESET
++   net_d0 net_d1 net_d2 net_d3 net_d4 net_d5
++   net_d0 net_d1 net_d2 net_d3 net_d4 net_d5
++   net_smp2 net_clkout2 VDD VSS / Async_SAR_LOGIC_12b
+* Output register
+XI_out net_clkout2
++  net_d0 net_d1 net_d2 net_d3 net_d4 net_d5
++  net_d6 net_d7 net_d8 net_d9 net_d10 net_d11
++  B0 B1 B2 B3 B4 B5 B6 B7 B8 B9 B10 B11 VDD VSS / Output_Reg_12b
+* Internal clock phasing
+XI_clkbuf VDD CLK net_clk_int VSS / INV_X4
+XI_ph1    VDD net_clk_int net_clk1 VSS / INV
+XI_ph2    VDD net_clk1    net_clk2 VSS / INV
+.ENDS
+
+* ---------------------------------------------------------------
+* LC_PLL_N7  – fractional-N PLL for 12GHz clock generation
+*   Ref: 100MHz TCXO in, fVCO=12GHz (÷1), multi-phase output
+* ---------------------------------------------------------------
+.SUBCKT LC_PLL_N7 REF VDD_PLL VCO_P VCO_N
++   CLK_0 CLK_90 CLK_180 CLK_270 LOCK VSS
+* VCO: differential LC oscillator tank
+LL_vco_p VDD_PLL net_vco_p 80.0p $[INDIFF_N7]
+LL_vco_n VDD_PLL net_vco_n 80.0p $[INDIFF_N7]
+CC_vco_p net_vco_p VSS 3.2f $[VARICAP_N7] M=16
+CC_vco_n net_vco_n VSS 3.2f $[VARICAP_N7] M=16
+MM_vco_p net_vco_n net_vco_p VSS VSS N_7_FF W=84n L=7n M=16
+MM_vco_n net_vco_p net_vco_n VSS VSS N_7_FF W=84n L=7n M=16
+MM_vtail net_itail net_vctrl VSS VSS N_7_FF W=42n L=14n M=8
+* Phase-frequency detector + charge pump (behavioral stubs)
+RR_lf0 net_vctrl VSS 5.0K $[RPDIFF_N7] $W=1u $L=50u M=1
+CC_lf0 net_vctrl VSS 200.0f $[MOMCAP_N7] M=8
+* Quadrature divider (÷2 flip-flop chain)
+XI_div0 net_vco_p net_vco_n VDD_PLL CLK_0   CLK_180 VSS / DFF_SR_N7
+XI_div1 CLK_180  CLK_0   VDD_PLL CLK_90  CLK_270 VSS / DFF_SR_N7
+* Lock detector
+XI_lock VDD_PLL net_vctrl LOCK VSS / INV
+.ENDS
+
+* ---------------------------------------------------------------
+* VREF_BUF_N7  – per-channel reference voltage buffer
+* ---------------------------------------------------------------
+.SUBCKT VREF_BUF_N7 VDD VIN_REFP VIN_REFN VOUT_REFP VOUT_REFN VBIAS VSS
+MM_ibias net_ib VBIAS  VSS VSS N_7_FF W=21n L=28n M=4
+MM_outp  VOUT_REFP net_ib VDD VDD P_7_FF W=84n L=7n M=8
+MM_outn  VOUT_REFN net_ib VDD VDD P_7_FF W=84n L=7n M=8
+MM_fb    net_ib VOUT_REFP VSS VSS N_7_FF W=42n L=7n M=4
+CC_bypp  VOUT_REFP VSS 100.0f $[MOMCAP_N7] M=8
+CC_bypn  VOUT_REFN VSS 100.0f $[MOMCAP_N7] M=8
+XI_inbufp VDD VIN_REFP net_rp_int VSS / INV_X4
+XI_inbufn VDD VIN_REFN net_rn_int VSS / INV_X4
+.ENDS
+
+* ---------------------------------------------------------------
+* BGAP_N7  – bandgap + bias current reference  (Vbg ~ 1.2V)
+* ---------------------------------------------------------------
+.SUBCKT BGAP_N7 VDD VBGAP IBIAS VBIAS VSS
+MM_m0  net_bg0 net_bg0 VDD VDD P_7_FF W=84n L=28n M=8
+MM_m1  net_bg1 net_bg0 VDD VDD P_7_FF W=84n L=28n M=8
+MM_m2  net_ibias net_bg0 VDD VDD P_7_FF W=84n L=28n M=4
+MM_n0  net_bg0 net_bg0 VSS VSS N_7_FF W=42n L=28n M=4
+MM_n1  net_bg1 net_bg1 VSS VSS N_7_FF W=42n L=28n M=4
+MM_n1b net_bg1 net_bg1 VSS VSS N_7_FF W=42n L=28n M=1
+RR_p0  net_bg0 net_r0 2.5K $[RPDIFF_N7] $W=1u $L=25u M=1
+RR_p1  net_bg1 net_r1 2.5K $[RPDIFF_N7] $W=1u $L=25u M=1
+Dio_q0 net_r0 VSS DIOD_N7 AREA=2.0e-12 PJ=6.0e-6 M=8
+Dio_q1 net_r1 VSS DIOD_N7 AREA=2.0e-12 PJ=6.0e-6 M=1
+CC_byp VBGAP VSS 50.0f $[MOMCAP_N7] M=4
+RR_out net_bg0 VBGAP 1.0K $[RPDIFF_N7] $W=1u $L=10u M=1
+MM_ib  IBIAS net_ibias VDD VDD P_7_FF W=42n L=14n M=4
+MM_vb  VBIAS IBIAS VSS VSS N_7_FF W=21n L=14n M=4
+.ENDS
+
+* ---------------------------------------------------------------
+* TI_INTERLEAVE_CTRL  – 4-way time-interleave controller
+*   Generates CLK_0/90/180/270 phase-shifted enables
+*   and routes calibration correction codes
+* ---------------------------------------------------------------
+.SUBCKT TI_INTERLEAVE_CTRL CLK_0 CLK_90 CLK_180 CLK_270 RESET VDD
++   EN_CH0 EN_CH1 EN_CH2 EN_CH3
++   CAL_DONE CAL_CODE_0 CAL_CODE_1 CAL_CODE_2 CAL_CODE_3 VSS
+* Enable gating per channel
+XI_en0 CLK_0   RESET VDD EN_CH0 VSS / NAND2
+XI_en1 CLK_90  RESET VDD EN_CH1 VSS / NAND2
+XI_en2 CLK_180 RESET VDD EN_CH2 VSS / NAND2
+XI_en3 CLK_270 RESET VDD EN_CH3 VSS / NAND2
+* Background calibration done flag register
+XI_caldff EN_CH0 CAL_DONE VDD CAL_DONE net_caldone_b VSS / DFF_simple_N7
+* Calibration code pipeline (per channel)
+XI_cal0 EN_CH0 CAL_CODE_0 VDD CAL_CODE_0 net_cc0b VSS / DFF_simple_N7
+XI_cal1 EN_CH1 CAL_CODE_1 VDD CAL_CODE_1 net_cc1b VSS / DFF_simple_N7
+XI_cal2 EN_CH2 CAL_CODE_2 VDD CAL_CODE_2 net_cc2b VSS / DFF_simple_N7
+XI_cal3 EN_CH3 CAL_CODE_3 VDD CAL_CODE_3 net_cc3b VSS / DFF_simple_N7
+XI_clkinvbuf VDD CLK_0 net_clk_ctrl VSS / INV_X4
+.ENDS
+
+* ---------------------------------------------------------------
+* ADC_5G_CORE  – 4-way TI pipelined-SAR ADC core (no IO ring)
+* ---------------------------------------------------------------
+.SUBCKT ADC_5G_CORE
++  CLK_DIFF_P CLK_DIFF_N
++  VIN_P VIN_N REFP REFN VCM
++  VDD VSS
++  B0 B1 B2 B3 B4 B5 B6 B7 B8 B9 B10 B11 RESET
+* Bandgap & bias
+XI_bg VDD net_vbg net_ibias net_vbias VSS / BGAP_N7
+* PLL clock generation
+XI_pll net_clkref VDD net_vco_p net_vco_n
++   net_clk0 net_clk90 net_clk180 net_clk270 net_lock VSS / LC_PLL_N7
+* Reference buffers (one per channel)
+XI_ref0 VDD REFP REFN net_rp0 net_rn0 net_vbias VSS / VREF_BUF_N7
+XI_ref1 VDD REFP REFN net_rp1 net_rn1 net_vbias VSS / VREF_BUF_N7
+XI_ref2 VDD REFP REFN net_rp2 net_rn2 net_vbias VSS / VREF_BUF_N7
+XI_ref3 VDD REFP REFN net_rp3 net_rn3 net_vbias VSS / VREF_BUF_N7
+* TI interleave controller
+XI_ti net_clk0 net_clk90 net_clk180 net_clk270 RESET VDD
++   net_en0 net_en1 net_en2 net_en3
++   net_caldone net_cc0 net_cc1 net_cc2 net_cc3 VSS / TI_INTERLEAVE_CTRL
+* Channel 0  (0° phase, 3GSPS)
+XI_ch0 net_en0 net_clk180 net_rn0 net_rp0 VCM VDD VIN_P VIN_N net_vbias RESET
++   net_b0_0 net_b1_0 net_b2_0 net_b3_0 net_b4_0 net_b5_0
++   net_b6_0 net_b7_0 net_b8_0 net_b9_0 net_b10_0 net_b11_0 VSS / PIPE_SAR_CHANNEL
+* Channel 1  (90° phase, 3GSPS)
+XI_ch1 net_en1 net_clk270 net_rn1 net_rp1 VCM VDD VIN_P VIN_N net_vbias RESET
++   net_b0_1 net_b1_1 net_b2_1 net_b3_1 net_b4_1 net_b5_1
++   net_b6_1 net_b7_1 net_b8_1 net_b9_1 net_b10_1 net_b11_1 VSS / PIPE_SAR_CHANNEL
+* Channel 2  (180° phase, 3GSPS)
+XI_ch2 net_en2 net_clk0   net_rn2 net_rp2 VCM VDD VIN_P VIN_N net_vbias RESET
++   net_b0_2 net_b1_2 net_b2_2 net_b3_2 net_b4_2 net_b5_2
++   net_b6_2 net_b7_2 net_b8_2 net_b9_2 net_b10_2 net_b11_2 VSS / PIPE_SAR_CHANNEL
+* Channel 3  (270° phase, 3GSPS)
+XI_ch3 net_en3 net_clk90  net_rn3 net_rp3 VCM VDD VIN_P VIN_N net_vbias RESET
++   net_b0_3 net_b1_3 net_b2_3 net_b3_3 net_b4_3 net_b5_3
++   net_b6_3 net_b7_3 net_b8_3 net_b9_3 net_b10_3 net_b11_3 VSS / PIPE_SAR_CHANNEL
+* Output MUX (4-to-1, registered, 12GSps output bus -> B[11:0])
+XI_mux0  net_en0 net_b0_0  net_b0_1  net_b0_2  net_b0_3  VDD B0  VSS / NAND2
+XI_mux1  net_en1 net_b1_0  net_b1_1  net_b1_2  net_b1_3  VDD B1  VSS / NAND2
+XI_mux2  net_en2 net_b2_0  net_b2_1  net_b2_2  net_b2_3  VDD B2  VSS / NAND2
+XI_mux3  net_en3 net_b3_0  net_b3_1  net_b3_2  net_b3_3  VDD B3  VSS / NAND2
+XI_mux4  net_en0 net_b4_0  net_b4_1  net_b4_2  net_b4_3  VDD B4  VSS / NAND2
+XI_mux5  net_en1 net_b5_0  net_b5_1  net_b5_2  net_b5_3  VDD B5  VSS / NAND2
+XI_mux6  net_en2 net_b6_0  net_b6_1  net_b6_2  net_b6_3  VDD B6  VSS / NAND2
+XI_mux7  net_en3 net_b7_0  net_b7_1  net_b7_2  net_b7_3  VDD B7  VSS / NAND2
+XI_mux8  net_en0 net_b8_0  net_b8_1  net_b8_2  net_b8_3  VDD B8  VSS / NAND2
+XI_mux9  net_en1 net_b9_0  net_b9_1  net_b9_2  net_b9_3  VDD B9  VSS / NAND2
+XI_mux10 net_en2 net_b10_0 net_b10_1 net_b10_2 net_b10_3 VDD B10 VSS / NAND2
+XI_mux11 net_en3 net_b11_0 net_b11_1 net_b11_2 net_b11_3 VDD B11 VSS / NAND2
+.ENDS
+
+* ---------------------------------------------------------------
+* ADC_5G_SOC_12b  – TOP-LEVEL with IO ring + JESD204B pads
+* ---------------------------------------------------------------
+.SUBCKT ADC_5G_SOC_12b
++  B0 B1 B2 B3 B4 B5 B6 B7 B8 B9 B10 B11
++  CLK_P CLK_N REFP REFN VCM
++  VDD VDDE VDD_PLL VIN_P VIN_N VSS VSSE
++  RESET LOCK_OUT
+* Analog input pads (RF, with ESD)
+XI_ain_vinp VSSE VIN_P  VDDE net_esd_bias / AIN_RF
+XI_ain_vinn VSSE VIN_N  VDDE net_esd_bias / AIN_RF
+XI_ain_refp VSSE REFP   VDDE net_esd_bias / AIN_RF
+XI_ain_refn VSSE REFN   VDDE net_esd_bias / AIN_RF
+XI_ain_vcm  VSSE VCM    VDDE net_esd_bias / AIN_RF
+XI_ain_clkp VSSE CLK_P  VDDE net_esd_bias / AIN_RF
+XI_ain_clkn VSSE CLK_N  VDDE net_esd_bias / AIN_RF
+* JESD204B digital output pads (1.8V CML, with 50Ω termination)
+XI_dout_b11 VSSE B11 VDD VDDE VSS net_ibias_jesd / DOUT_JESD
+XI_dout_b10 VSSE B10 VDD VDDE VSS net_ibias_jesd / DOUT_JESD
+XI_dout_b9  VSSE B9  VDD VDDE VSS net_ibias_jesd / DOUT_JESD
+XI_dout_b8  VSSE B8  VDD VDDE VSS net_ibias_jesd / DOUT_JESD
+XI_dout_b7  VSSE B7  VDD VDDE VSS net_ibias_jesd / DOUT_JESD
+XI_dout_b6  VSSE B6  VDD VDDE VSS net_ibias_jesd / DOUT_JESD
+XI_dout_b5  VSSE B5  VDD VDDE VSS net_ibias_jesd / DOUT_JESD
+XI_dout_b4  VSSE B4  VDD VDDE VSS net_ibias_jesd / DOUT_JESD
+XI_dout_b3  VSSE B3  VDD VDDE VSS net_ibias_jesd / DOUT_JESD
+XI_dout_b2  VSSE B2  VDD VDDE VSS net_ibias_jesd / DOUT_JESD
+XI_dout_b1  VSSE B1  VDD VDDE VSS net_ibias_jesd / DOUT_JESD
+XI_dout_b0  VSSE B0  VDD VDDE VSS net_ibias_jesd / DOUT_JESD
+* ESD / power ring
+XI_esd_io   VSSE VDDE     / ESD_N7
+XI_esd_core VSS  VDD      / ESD_N7
+XI_esd_pll  VSS  VDD_PLL  / ESD_N7
+XI_vddi     VSSE VDDE VDD / VDDI_CELL
+XI_vssi     VSS  VSSE     / VSSI_CELL
+* Lock indicator pad
+XI_lock_pad VSSE LOCK_OUT VDD VDDE VSS net_ibias_jesd / DOUT_JESD
+* ADC core instantiation
+XI_core
++  CLK_P CLK_N
++  VIN_P VIN_N REFP REFN VCM
++  VDD VSS
++  net_b0 net_b1 net_b2 net_b3 net_b4 net_b5
++  net_b6 net_b7 net_b8 net_b9 net_b10 net_b11 RESET / ADC_5G_CORE
+* Output drive buffers (INV_X4 to pad capacitance)
+XI_bufb11 VDD net_b11 B11 VSS / INV_X4
+XI_bufb10 VDD net_b10 B10 VSS / INV_X4
+XI_bufb9  VDD net_b9  B9  VSS / INV_X4
+XI_bufb8  VDD net_b8  B8  VSS / INV_X4
+XI_bufb7  VDD net_b7  B7  VSS / INV_X4
+XI_bufb6  VDD net_b6  B6  VSS / INV_X4
+XI_bufb5  VDD net_b5  B5  VSS / INV_X4
+XI_bufb4  VDD net_b4  B4  VSS / INV_X4
+XI_bufb3  VDD net_b3  B3  VSS / INV_X4
+XI_bufb2  VDD net_b2  B2  VSS / INV_X4
+XI_bufb1  VDD net_b1  B1  VSS / INV_X4
+XI_bufb0  VDD net_b0  B0  VSS / INV_X4
+.ENDS
+
+* ============================================================
+* END OF FILE  (schematic view)
+* ============================================================

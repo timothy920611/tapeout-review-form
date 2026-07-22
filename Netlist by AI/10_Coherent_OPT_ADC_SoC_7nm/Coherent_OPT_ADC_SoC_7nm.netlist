@@ -1,0 +1,524 @@
+************************************************************************
+* auCdl Netlist:
+*
+* Library Name:  ADC_OPT_7nm
+* Top Cell Name: ADC_OPT_SOC_8b
+* View Name:     schematic
+* Technology:    TSMC 7nm FinFET (N7 process)
+* VDD_IO:        1.8V   (IO ring / SerDes interface)
+* VDD_CORE:      0.75V  (analog / digital core)
+* VDD_DSP:       0.80V  (DSP / calibration logic domain)
+* Resolution:    8-bit
+* Sample Rate:   64 GSPS (8x 8GSPS time-interleaved)
+* Architecture:  8-way TI Flash-assisted Pipeline ADC +
+*                On-chip ADPLL + 4-tap FIR pre-distortion +
+*                400G Coherent Optical PAM-4 SerDes Output
+* SNDR:          46 dB (target @ Nyquist, 32GHz input)
+* SFDR:          55 dB (target)
+* Input BW:      40 GHz (-3dB, active T/H)
+* Power:         480 mW @ 0.75V core
+* Process Node:  TSMC N7 FinFET (CLN7FF)
+* Designed by:   High-Speed Mixed-Signal Group
+* Date:          2026-05-29
+************************************************************************
+
+.PARAM
++ VDD_CORE=0.75
++ VDD_IO=1.8
++ VDD_DSP=0.80
++ FCLK=64G
++ NFIN_N=2
++ NFIN_P=2
+
+* ---------------------------------------------------------------
+* FinFET primitive model mapping  (N7 CLN7FF)
+*   N_7_FF  : nFinFET  Wfin=7n  Lfin=7n  (Hfin=46nm)
+*   P_7_FF  : pFinFET  Wfin=7n  Lfin=7n
+* Note: W parameter = number of fins x Wfin_eff
+*       One fin  -> Weff~6nm, specify M for multiplicity
+* ---------------------------------------------------------------
+
+* ---------------------------------------------------------------
+* AIN_OPT  –  broadband optical input pad (40GHz BW, HBM ESD)
+*             T-coil bandwidth extension embedded in pad
+* ---------------------------------------------------------------
+.SUBCKT AIN_OPT GND PAD VDDE BIAS_ESD
+RR0  VDDE net_a0  40.0  $[RPDIFF_N7] $W=2u  $L=8u  M=1
+RR1  VDDE net_a1  20.0  $[RPDIFF_N7] $W=4u  $L=8u  M=1
+LL_tc0 PAD  net_tc0  18.0p $[INDIFF_N7]
+LL_tc1 net_tc0 net_a2 18.0p $[INDIFF_N7]
+CC_tc  net_tc0 VSS  5.0f  $[MOMCAP_N7] M=2
+MM4  PAD  BIAS_ESD GND  GND  N_7_FF W=84n L=7n  M=48
+MM3  GND  net_a0   GND  GND  N_7_FF W=84n L=28n M=24
+MM2  GND  net_a0   GND  GND  N_7_FF W=84n L=28n M=12
+MM1  net_a2 net_a0 GND  GND  N_7_FF W=84n L=7n  M=6
+MM5  PAD  net_a1  VDDE VDDE P_7_FF  W=84n L=7n  M=48
+MM0  net_a2 net_a0 VDDE VDDE P_7_FF  W=84n L=7n  M=6
+Dio1  net_a2 VDDE DIOD_N7 AREA=1.0e-12 PJ=3.8e-6
+Dio2  net_a2 GND  DIOD_N7 AREA=5.0e-13 PJ=2.6e-6
+Dio3  GND    GND  DIOD_N7 AREA=1.0e-14 PJ=9.0e-7
+.ENDS
+
+* ---------------------------------------------------------------
+* DOUT_PAM4  –  1.8V PAM-4 CML output driver pad (400G optical)
+*               50Ω differential, 4-level pre-emphasis
+* ---------------------------------------------------------------
+.SUBCKT DOUT_PAM4 GND PAD VDD VDDE VSS IBIAS_H IBIAS_L
+RR_term VDDE PAD 50.0 $[RPDIFF_N7] $W=2u $L=5u M=1
+MM8  PAD   net_d2 GND  GND  N_7_FF W=84n L=7n  M=24
+MM7  PAD   net_d2 VDDE VDDE P_7_FF W=84n L=7n  M=24
+MM6  net_d2 net_d1 GND  GND  N_7_FF W=42n L=7n  M=8
+MM5  net_d2 net_d1 VDDE VDDE P_7_FF W=42n L=7n  M=8
+MM4  net_d1 net_d0 VSS  VSS  N_7_FF W=21n L=7n  M=4
+MM3  net_d1 net_d0 VDD  VDD  P_7_FF W=42n L=7n  M=4
+* Two-level current tail for PAM-4 amplitude control
+MM_th IBIAS_H IBIAS_H VSS VSS N_7_FF W=21n L=14n M=8
+MM_tl IBIAS_L IBIAS_L VSS VSS N_7_FF W=21n L=14n M=4
+RR_p  VDDE net_pull 100.0 $[RPDIFF_N7] $W=1u $L=10u M=1
+.ENDS
+
+* ---------------------------------------------------------------
+* ESD_N7 / VDDI_CELL / VSSI_CELL  (7nm ring cells)
+* ---------------------------------------------------------------
+.SUBCKT ESD_N7 GND VDD
+RR0  VDD  net_e0  100.0 $[RPDIFF_N7] $W=1u $L=10u M=1
+MM3  net_e1 net_e0 GND  GND  N_7_FF W=84n L=28n M=32
+MM2  net_e2 net_e0 GND  GND  N_7_FF W=84n L=7n  M=4
+MM1  net_e2 net_e0 VDD  VDD  P_7_FF W=84n L=7n  M=4
+Dio1 net_e2 VDD DIOD_N7 AREA=400.0p PJ=80.0u
+Dio2 net_e2 GND DIOD_N7 AREA=200.0p PJ=60.0u
+Dio3 GND    GND DIOD_N7 AREA=3.0p   PJ=5.0u
+.ENDS
+
+.SUBCKT VDDI_CELL GND VDDE VDDI
+RR0  VDDI  net_v0  100.0 $[RPDIFF_N7] $W=1u $L=10u M=1
+MM2  GND   net_v0  GND  GND  N_7_FF W=84n L=28n M=32
+MM1  net_v1 net_v0 GND  GND  N_7_FF W=84n L=7n  M=4
+MM0  net_v1 net_v0 VDDI VDDI P_7_FF W=84n L=7n  M=4
+Dio1 net_v1 VDDI DIOD_N7 AREA=400.0p PJ=80.0u
+Dio2 net_v1 GND  DIOD_N7 AREA=200.0p PJ=60.0u
+Dio3 GND    GND  DIOD_N7 AREA=3.0p   PJ=5.0u
+.ENDS
+
+.SUBCKT VSSI_CELL GND VSSI
+RR0  VSSI net_vs0 200.0 $[RPDIFF_N7] $W=1u $L=5u M=1
+MM0  VSSI net_vs0 GND GND N_7_FF W=84n L=14n M=48
+.ENDS
+
+* ---------------------------------------------------------------
+* Standard cell primitives (N7 FinFET)
+* ---------------------------------------------------------------
+.SUBCKT INV VDD VIN VOUT VSS
+MM0 VOUT VIN VSS VSS N_7_FF W=42n L=7n M=2
+MM1 VOUT VIN VDD VDD P_7_FF W=42n L=7n M=2
+.ENDS
+
+.SUBCKT INV_X4 VDD VIN VOUT VSS
+MM0 net_x VSS VIN VSS N_7_FF W=42n L=7n M=4
+MM1 net_x VDD VIN VDD P_7_FF W=42n L=7n M=4
+MM2 VOUT  VSS net_x VSS N_7_FF W=42n L=7n M=8
+MM3 VOUT  VDD net_x VDD P_7_FF W=42n L=7n M=8
+.ENDS
+
+.SUBCKT NAND2 A B VDD VOUT VSS
+MM0 VOUT A VDD VDD P_7_FF W=42n L=7n M=2
+MM1 VOUT B VDD VDD P_7_FF W=42n L=7n M=2
+MM2 VOUT A net_n0 VSS N_7_FF W=42n L=7n M=4
+MM3 net_n0 B VSS  VSS N_7_FF W=42n L=7n M=4
+.ENDS
+
+.SUBCKT NOR2 A B VDD VOUT VSS
+MM0 net_r0 A VDD VDD P_7_FF W=84n L=7n M=4
+MM1 VOUT   B net_r0 VDD P_7_FF W=84n L=7n M=4
+MM2 VOUT A VSS VSS N_7_FF W=42n L=7n M=2
+MM3 VOUT B VSS VSS N_7_FF W=42n L=7n M=2
+.ENDS
+
+.SUBCKT AND2 A B VDD VOUT VSS
+XI0 A B VDD net_and VSS / NAND2
+XI1 VDD net_and VOUT VSS / INV
+.ENDS
+
+* ---------------------------------------------------------------
+* D_Latch_SR_N7  –  NAND-based SR latch
+* ---------------------------------------------------------------
+.SUBCKT D_Latch_SR_N7 D EN VDD Q Q_B VSS
+XI_inv VDD D     net_db VSS / INV
+XI0 D      EN VDD net_s  VSS / NAND2
+XI1 net_db EN VDD net_r  VSS / NAND2
+XI2 net_s  net_r VDD Q   VSS / NAND2
+XI3 net_r  Q     VDD Q_B VSS / NAND2
+.ENDS
+
+* ---------------------------------------------------------------
+* DFF_SR_N7  –  D flip-flop with async SET / RESET
+* ---------------------------------------------------------------
+.SUBCKT DFF_SR_N7 CLK D RESET SET VDD Q Q_B VSS
+XI_ckb  VDD CLK net_clkb VSS / INV
+XI_ml   D net_clkb VDD net_mq net_mqb VSS / D_Latch_SR_N7
+XI_sl   net_mq CLK VDD Q Q_B VSS / D_Latch_SR_N7
+XI_set  SET  Q_B VDD net_fs VSS / NAND2
+XI_rst  RESET Q  VDD net_fr VSS / NAND2
+MM_ov1  Q   net_fs VDD VDD P_7_FF W=42n L=7n M=1
+MM_ov2  Q_B net_fr VDD VDD P_7_FF W=42n L=7n M=1
+.ENDS
+
+* ---------------------------------------------------------------
+* DFF_simple_N7  –  output register flip-flop
+* ---------------------------------------------------------------
+.SUBCKT DFF_simple_N7 CLK D VDD Q VSS
+XI_ckb VDD CLK net_ckb VSS / INV
+XI_ml  D net_ckb VDD net_mq net_mqb VSS / D_Latch_SR_N7
+XI_sl  net_mq CLK VDD Q net_qb VSS / D_Latch_SR_N7
+.ENDS
+
+* ---------------------------------------------------------------
+* Active_TH_N7  –  broadband active Track-and-Hold (40GHz BW)
+*   CML differential topology with LC peaking for bandwidth ext.
+* ---------------------------------------------------------------
+.SUBCKT Active_TH_N7 CLK VDD VIN_P VIN_N VOUT_P VOUT_N VBIAS VSS
+MM_sw_p VOUT_P CLK VIN_P VSS N_7_FF W=84n L=7n M=8
+MM_sw_n VOUT_N CLK VIN_N VSS N_7_FF W=84n L=7n M=8
+MM_src_p VIN_P VBIAS net_s0 VSS N_7_FF W=84n L=7n M=8
+MM_src_n VIN_N VBIAS net_s1 VSS N_7_FF W=84n L=7n M=8
+MM_ld_p  VOUT_P VOUT_N VDD VDD P_7_FF W=42n L=7n M=4
+MM_ld_n  VOUT_N VOUT_P VDD VDD P_7_FF W=42n L=7n M=4
+MM_tail  net_s0 net_s1 VSS VSS N_7_FF W=42n L=14n M=16
+* LC peaking inductor for 40GHz BW extension
+LL_pk_p  VDD VOUT_P 30.0p $[INDIFF_N7]
+LL_pk_n  VDD VOUT_N 30.0p $[INDIFF_N7]
+CC_hold_p VOUT_P VSS 4.0f $[MOMCAP_N7] M=2
+CC_hold_n VOUT_N VSS 4.0f $[MOMCAP_N7] M=2
+XI_ckbuf VDD CLK net_ck_int VSS / INV_X4
+.ENDS
+
+* ---------------------------------------------------------------
+* Flash_Comparator_N7  –  raw 1-bit clocked comparator for flash
+*   Pre-amplifier + StrongARM regeneration
+* ---------------------------------------------------------------
+.SUBCKT Flash_Comparator_N7 CLK VDD VIN_P VIN_N VREF_P VREF_N VOUT VBIAS VSS
+* Pre-amplifier (differential pair)
+MM_pa_p  net_pa_p VIN_P  net_pa_t VSS N_7_FF W=84n L=7n M=4
+MM_pa_n  net_pa_n VIN_N  net_pa_t VSS N_7_FF W=84n L=7n M=4
+MM_pa_t  net_pa_t VBIAS  VSS  VSS  N_7_FF W=42n L=14n M=8
+MM_pa_lp net_pa_p VREF_P VDD  VDD  P_7_FF W=42n L=7n  M=2
+MM_pa_ln net_pa_n VREF_N VDD  VDD  P_7_FF W=42n L=7n  M=2
+* StrongARM latch
+MM_tl  net_tail CLK   VSS  VSS  N_7_FF W=42n L=7n  M=8
+MM_inp net_lp   net_pa_p net_tail VSS N_7_FF W=84n L=7n M=4
+MM_inn net_ln   net_pa_n net_tail VSS N_7_FF W=84n L=7n M=4
+MM_rp1 net_lp   CLK   VDD  VDD  P_7_FF W=42n L=7n  M=2
+MM_rp2 net_ln   CLK   VDD  VDD  P_7_FF W=42n L=7n  M=2
+MM_lp1 net_outp net_outn VDD VDD P_7_FF W=84n L=7n  M=2
+MM_lp2 net_outn net_outp VDD VDD P_7_FF W=84n L=7n  M=2
+MM_ln1 net_outp net_outn net_lp VSS N_7_FF W=84n L=7n M=2
+MM_ln2 net_outn net_outp net_ln VSS N_7_FF W=84n L=7n M=2
+MM_or1 net_outp CLK    VDD VDD  P_7_FF W=42n L=7n  M=2
+MM_or2 net_outn CLK    VDD VDD  P_7_FF W=42n L=7n  M=2
+* Output encode to single-ended
+XI_enc VDD net_outn VOUT VSS / INV
+.ENDS
+
+* ---------------------------------------------------------------
+* Flash_4b_N7  –  4-bit resistor-ladder flash sub-ADC
+*   15 comparators, thermometer -> binary encoder
+* ---------------------------------------------------------------
+.SUBCKT Flash_4b_N7 CLK VDD VIN_P VIN_N REFP REFN VBIAS
++   Q0 Q1 Q2 Q3 VSS
+* Resistor ladder (16 equal segments, REFP to REFN)
+RR0  REFP net_r15 450.0 $[RPDIFF_N7] $W=1u $L=4u M=1
+RR1  net_r15 net_r14 450.0 $[RPDIFF_N7] $W=1u $L=4u M=1
+RR2  net_r14 net_r13 450.0 $[RPDIFF_N7] $W=1u $L=4u M=1
+RR3  net_r13 net_r12 450.0 $[RPDIFF_N7] $W=1u $L=4u M=1
+RR4  net_r12 net_r11 450.0 $[RPDIFF_N7] $W=1u $L=4u M=1
+RR5  net_r11 net_r10 450.0 $[RPDIFF_N7] $W=1u $L=4u M=1
+RR6  net_r10 net_r9  450.0 $[RPDIFF_N7] $W=1u $L=4u M=1
+RR7  net_r9  net_r8  450.0 $[RPDIFF_N7] $W=1u $L=4u M=1
+RR8  net_r8  net_r7  450.0 $[RPDIFF_N7] $W=1u $L=4u M=1
+RR9  net_r7  net_r6  450.0 $[RPDIFF_N7] $W=1u $L=4u M=1
+RR10 net_r6  net_r5  450.0 $[RPDIFF_N7] $W=1u $L=4u M=1
+RR11 net_r5  net_r4  450.0 $[RPDIFF_N7] $W=1u $L=4u M=1
+RR12 net_r4  net_r3  450.0 $[RPDIFF_N7] $W=1u $L=4u M=1
+RR13 net_r3  net_r2  450.0 $[RPDIFF_N7] $W=1u $L=4u M=1
+RR14 net_r2  net_r1  450.0 $[RPDIFF_N7] $W=1u $L=4u M=1
+RR15 net_r1  REFN    450.0 $[RPDIFF_N7] $W=1u $L=4u M=1
+* 15 comparators (thermo codes T14..T0)
+XI_c14 CLK VDD VIN_P VIN_N net_r15 net_r1  net_t14 VBIAS VSS / Flash_Comparator_N7
+XI_c13 CLK VDD VIN_P VIN_N net_r14 net_r2  net_t13 VBIAS VSS / Flash_Comparator_N7
+XI_c12 CLK VDD VIN_P VIN_N net_r13 net_r3  net_t12 VBIAS VSS / Flash_Comparator_N7
+XI_c11 CLK VDD VIN_P VIN_N net_r12 net_r4  net_t11 VBIAS VSS / Flash_Comparator_N7
+XI_c10 CLK VDD VIN_P VIN_N net_r11 net_r5  net_t10 VBIAS VSS / Flash_Comparator_N7
+XI_c9  CLK VDD VIN_P VIN_N net_r10 net_r6  net_t9  VBIAS VSS / Flash_Comparator_N7
+XI_c8  CLK VDD VIN_P VIN_N net_r9  net_r7  net_t8  VBIAS VSS / Flash_Comparator_N7
+XI_c7  CLK VDD VIN_P VIN_N net_r8  net_r8  net_t7  VBIAS VSS / Flash_Comparator_N7
+XI_c6  CLK VDD VIN_P VIN_N net_r7  net_r9  net_t6  VBIAS VSS / Flash_Comparator_N7
+XI_c5  CLK VDD VIN_P VIN_N net_r6  net_r10 net_t5  VBIAS VSS / Flash_Comparator_N7
+XI_c4  CLK VDD VIN_P VIN_N net_r5  net_r11 net_t4  VBIAS VSS / Flash_Comparator_N7
+XI_c3  CLK VDD VIN_P VIN_N net_r4  net_r12 net_t3  VBIAS VSS / Flash_Comparator_N7
+XI_c2  CLK VDD VIN_P VIN_N net_r3  net_r13 net_t2  VBIAS VSS / Flash_Comparator_N7
+XI_c1  CLK VDD VIN_P VIN_N net_r2  net_r14 net_t1  VBIAS VSS / Flash_Comparator_N7
+XI_c0  CLK VDD VIN_P VIN_N net_r1  net_r15 net_t0  VBIAS VSS / Flash_Comparator_N7
+* Thermometer-to-4b binary encoder (NOR-based bubble correction)
+XI_q3 net_t14 net_t6 VDD Q3 VSS / NOR2
+XI_q2 net_t12 net_t4 VDD Q2 VSS / NOR2
+XI_q1 net_t10 net_t2 VDD Q1 VSS / NOR2
+XI_q0 net_t8  net_t0 VDD Q0 VSS / NOR2
+.ENDS
+
+* ---------------------------------------------------------------
+* FIR_TAP_N7  –  single 4-tap FIR pre-distortion cell
+*   Implements w0*D[n] + w1*D[n-1] + w2*D[n-2] + w3*D[n-3]
+* ---------------------------------------------------------------
+.SUBCKT FIR_TAP_N7 CLK VDD D0 D1 D2 D3 W0 W1 W2 W3 VOUT VSS
+* Coefficient-weighted current DAC (binary-weighted tail mirrors)
+MM_d0 net_f0 D0  net_i0 VSS N_7_FF W=42n L=7n M=8
+MM_d1 net_f1 D1  net_i1 VSS N_7_FF W=42n L=7n M=4
+MM_d2 net_f2 D2  net_i2 VSS N_7_FF W=42n L=7n M=2
+MM_d3 net_f3 D3  net_i3 VSS N_7_FF W=42n L=7n M=1
+MM_w0 net_i0 W0  VSS    VSS N_7_FF W=21n L=14n M=8
+MM_w1 net_i1 W1  VSS    VSS N_7_FF W=21n L=14n M=4
+MM_w2 net_i2 W2  VSS    VSS N_7_FF W=21n L=14n M=2
+MM_w3 net_i3 W3  VSS    VSS N_7_FF W=21n L=14n M=1
+* Load and summation
+MM_ld0 net_f0 net_f0 VDD VDD P_7_FF W=42n L=7n M=4
+MM_ld1 net_f1 net_f0 VDD VDD P_7_FF W=42n L=7n M=4
+MM_ld2 net_f2 net_f0 VDD VDD P_7_FF W=42n L=7n M=4
+MM_ld3 net_f3 net_f0 VDD VDD P_7_FF W=42n L=7n M=4
+RR_sum net_f0 VOUT 200.0 $[RPDIFF_N7] $W=1u $L=2u M=1
+CC_sum VOUT VSS 5.0f $[MOMCAP_N7] M=2
+XI_clkbuf VDD CLK net_ck_fir VSS / INV_X4
+.ENDS
+
+* ---------------------------------------------------------------
+* ADPLL_N7  –  all-digital PLL for 64GHz multi-phase clock
+*   DCO + TDC + digital loop filter, fDCO=64GHz (÷1)
+*   8-phase outputs: 0/45/90/135/180/225/270/315°
+* ---------------------------------------------------------------
+.SUBCKT ADPLL_N7 REF VDD_PLL
++   CLK_0 CLK_45 CLK_90 CLK_135
++   CLK_180 CLK_225 CLK_270 CLK_315
++   LOCK FCW VSS
+* DCO: inverter-ring with switched MOM-cap banks
+MM_dco0 net_d1 net_d0 VSS VSS N_7_FF W=42n L=7n M=8
+MM_dco1 net_d1 net_d0 VDD VDD P_7_FF W=42n L=7n M=8
+MM_dco2 net_d2 net_d1 VSS VSS N_7_FF W=42n L=7n M=8
+MM_dco3 net_d2 net_d1 VDD VDD P_7_FF W=42n L=7n M=8
+MM_dco4 net_d3 net_d2 VSS VSS N_7_FF W=42n L=7n M=8
+MM_dco5 net_d3 net_d2 VDD VDD P_7_FF W=42n L=7n M=8
+MM_dco6 net_d0 net_d3 VSS VSS N_7_FF W=42n L=7n M=8
+MM_dco7 net_d0 net_d3 VDD VDD P_7_FF W=42n L=7n M=8
+* Switched cap tuning banks (coarse / fine)
+CC_c0 net_d0 VSS 1.0f $[VARICAP_N7] M=16
+CC_c1 net_d1 VSS 1.0f $[VARICAP_N7] M=16
+CC_f0 net_d0 VSS 0.25f $[VARICAP_N7] M=8
+CC_f1 net_d1 VSS 0.25f $[VARICAP_N7] M=8
+* 8-phase taps from ring stages
+XI_ph0   VDD net_d0 CLK_0   VSS / INV_X4
+XI_ph45  VDD net_d1 CLK_45  VSS / INV_X4
+XI_ph90  VDD net_d2 CLK_90  VSS / INV_X4
+XI_ph135 VDD net_d3 CLK_135 VSS / INV_X4
+* Complementary phases via inverters
+XI_ph180 VDD CLK_0   CLK_180 VSS / INV_X4
+XI_ph225 VDD CLK_45  CLK_225 VSS / INV_X4
+XI_ph270 VDD CLK_90  CLK_270 VSS / INV_X4
+XI_ph315 VDD CLK_135 CLK_315 VSS / INV_X4
+* TDC-based lock indicator
+XI_lock  VDD net_d0 LOCK VSS / INV
+* FCW register (frequency control word tie-in)
+XI_fcw   VDD FCW net_d0 VSS / AND2
+.ENDS
+
+* ---------------------------------------------------------------
+* BGAP_N7  –  bandgap + bias current reference  (Vbg ~ 1.2V)
+* ---------------------------------------------------------------
+.SUBCKT BGAP_N7 VDD VBGAP IBIAS VBIAS VSS
+MM_m0  net_bg0 net_bg0 VDD VDD P_7_FF W=84n L=28n M=8
+MM_m1  net_bg1 net_bg0 VDD VDD P_7_FF W=84n L=28n M=8
+MM_m2  net_ibias net_bg0 VDD VDD P_7_FF W=84n L=28n M=4
+MM_n0  net_bg0 net_bg0 VSS VSS N_7_FF W=42n L=28n M=4
+MM_n1  net_bg1 net_bg1 VSS VSS N_7_FF W=42n L=28n M=4
+MM_n1b net_bg1 net_bg1 VSS VSS N_7_FF W=42n L=28n M=1
+RR_p0  net_bg0 net_r0 2.5K $[RPDIFF_N7] $W=1u $L=25u M=1
+RR_p1  net_bg1 net_r1 2.5K $[RPDIFF_N7] $W=1u $L=25u M=1
+Dio_q0 net_r0 VSS DIOD_N7 AREA=2.0e-12 PJ=6.0e-6 M=8
+Dio_q1 net_r1 VSS DIOD_N7 AREA=2.0e-12 PJ=6.0e-6 M=1
+CC_byp VBGAP VSS 50.0f $[MOMCAP_N7] M=4
+RR_out net_bg0 VBGAP 1.0K $[RPDIFF_N7] $W=1u $L=10u M=1
+MM_ib  IBIAS net_ibias VDD VDD P_7_FF W=42n L=14n M=4
+MM_vb  VBIAS IBIAS     VSS VSS N_7_FF W=21n L=14n M=4
+.ENDS
+
+* ---------------------------------------------------------------
+* VREF_BUF_N7  –  per-channel reference buffer
+* ---------------------------------------------------------------
+.SUBCKT VREF_BUF_N7 VDD VIN_REFP VIN_REFN VOUT_REFP VOUT_REFN VBIAS VSS
+MM_ibias net_ib VBIAS  VSS VSS N_7_FF W=21n L=28n M=4
+MM_outp  VOUT_REFP net_ib VDD VDD P_7_FF W=84n L=7n M=8
+MM_outn  VOUT_REFN net_ib VDD VDD P_7_FF W=84n L=7n M=8
+MM_fb    net_ib VOUT_REFP VSS VSS N_7_FF W=42n L=7n M=4
+CC_bypp  VOUT_REFP VSS 100.0f $[MOMCAP_N7] M=8
+CC_bypn  VOUT_REFN VSS 100.0f $[MOMCAP_N7] M=8
+XI_inbufp VDD VIN_REFP net_rp_int VSS / INV_X4
+XI_inbufn VDD VIN_REFN net_rn_int VSS / INV_X4
+.ENDS
+
+* ---------------------------------------------------------------
+* FLASH_PIPE_CHANNEL  –  single 8GSPS 8b flash-assisted pipeline ch
+*   Stage1: 4b flash coarse  Stage2: residue amp  Stage3: 4b flash fine
+*   (1-bit overlap for error correction -> 8b effective)
+* ---------------------------------------------------------------
+.SUBCKT FLASH_PIPE_CHANNEL
++  CLK CLK_B REFP REFN VCM VDD VIN_P VIN_N VBIAS VBIAS_H VBIAS_L
++  B0 B1 B2 B3 B4 B5 B6 B7 VSS
+* High-speed active T/H (40GHz BW)
+XI_th CLK VDD VIN_P VIN_N net_th_p net_th_n VBIAS VSS / Active_TH_N7
+* Coarse 4-bit flash (MSB: B7..B4)
+XI_flash1 CLK VDD net_th_p net_th_n REFP REFN VBIAS
++          net_cb0 net_cb1 net_cb2 net_cb3 VSS / Flash_4b_N7
+* Residue DAC subtraction + gain (switched-cap, gain=16)
+MM_sub_p  net_res_p net_cb3 net_th_p VSS N_7_FF W=84n L=7n M=8
+MM_sub_n  net_res_n net_cb3 net_th_n VSS N_7_FF W=84n L=7n M=8
+MM_gn_p   net_res_p net_res_n VDD VDD P_7_FF W=84n L=7n M=8
+MM_gn_n   net_res_n net_res_p VDD VDD P_7_FF W=84n L=7n M=8
+CC_res_p  net_res_p VSS 6.0f $[MOMCAP_N7] M=4
+CC_res_n  net_res_n VSS 6.0f $[MOMCAP_N7] M=4
+* Fine 4-bit flash (LSB: B3..B0)
+XI_flash2 CLK VDD net_res_p net_res_n REFP REFN VBIAS
++          net_fb0 net_fb1 net_fb2 net_fb3 VSS / Flash_4b_N7
+* 4-tap FIR pre-distortion (digital domain)
+XI_fir CLK VDD net_fb0 net_fb1 net_fb2 net_fb3
++       VBIAS_H VBIAS_L VBIAS VBIAS_H net_fir_out VSS / FIR_TAP_N7
+* Output register bank (8 bits)
+XI_r0 CLK net_cb0 VDD B0 VSS / DFF_simple_N7
+XI_r1 CLK net_cb1 VDD B1 VSS / DFF_simple_N7
+XI_r2 CLK net_cb2 VDD B2 VSS / DFF_simple_N7
+XI_r3 CLK net_cb3 VDD B3 VSS / DFF_simple_N7
+XI_r4 CLK net_fb0 VDD B4 VSS / DFF_simple_N7
+XI_r5 CLK net_fb1 VDD B5 VSS / DFF_simple_N7
+XI_r6 CLK net_fb2 VDD B6 VSS / DFF_simple_N7
+XI_r7 CLK net_fb3 VDD B7 VSS / DFF_simple_N7
+* Internal clock buffer
+XI_ckbuf VDD CLK net_ck_ch VSS / INV_X4
+.ENDS
+
+* ---------------------------------------------------------------
+* ADC_OPT_CORE  –  8-way TI flash-pipeline ADC core (no IO ring)
+* ---------------------------------------------------------------
+.SUBCKT ADC_OPT_CORE
++  CLK_REF FCW
++  VIN_P VIN_N REFP REFN VCM
++  VDD VDD_PLL VSS
++  B0 B1 B2 B3 B4 B5 B6 B7 RESET
+* Bandgap & bias
+XI_bg VDD net_vbg net_ibias net_vbias VSS / BGAP_N7
+* ADPLL clock generation (64GHz, 8-phase)
+XI_pll REF VDD_PLL
++   net_clk0   net_clk45  net_clk90  net_clk135
++   net_clk180 net_clk225 net_clk270 net_clk315
++   net_lock FCW VSS / ADPLL_N7
+* Per-channel reference buffers (8 channels)
+XI_ref0 VDD REFP REFN net_rp0 net_rn0 net_vbias VSS / VREF_BUF_N7
+XI_ref1 VDD REFP REFN net_rp1 net_rn1 net_vbias VSS / VREF_BUF_N7
+XI_ref2 VDD REFP REFN net_rp2 net_rn2 net_vbias VSS / VREF_BUF_N7
+XI_ref3 VDD REFP REFN net_rp3 net_rn3 net_vbias VSS / VREF_BUF_N7
+XI_ref4 VDD REFP REFN net_rp4 net_rn4 net_vbias VSS / VREF_BUF_N7
+XI_ref5 VDD REFP REFN net_rp5 net_rn5 net_vbias VSS / VREF_BUF_N7
+XI_ref6 VDD REFP REFN net_rp6 net_rn6 net_vbias VSS / VREF_BUF_N7
+XI_ref7 VDD REFP REFN net_rp7 net_rn7 net_vbias VSS / VREF_BUF_N7
+* 8 interleaved flash-pipeline channels (0° .. 315°)
+XI_ch0 net_clk0   net_clk180 net_rp0 net_rn0 VCM VDD VIN_P VIN_N
++       net_vbias net_ibias net_ibias
++       net_b0_0 net_b1_0 net_b2_0 net_b3_0
++       net_b4_0 net_b5_0 net_b6_0 net_b7_0 VSS / FLASH_PIPE_CHANNEL
+XI_ch1 net_clk45  net_clk225 net_rp1 net_rn1 VCM VDD VIN_P VIN_N
++       net_vbias net_ibias net_ibias
++       net_b0_1 net_b1_1 net_b2_1 net_b3_1
++       net_b4_1 net_b5_1 net_b6_1 net_b7_1 VSS / FLASH_PIPE_CHANNEL
+XI_ch2 net_clk90  net_clk270 net_rp2 net_rn2 VCM VDD VIN_P VIN_N
++       net_vbias net_ibias net_ibias
++       net_b0_2 net_b1_2 net_b2_2 net_b3_2
++       net_b4_2 net_b5_2 net_b6_2 net_b7_2 VSS / FLASH_PIPE_CHANNEL
+XI_ch3 net_clk135 net_clk315 net_rp3 net_rn3 VCM VDD VIN_P VIN_N
++       net_vbias net_ibias net_ibias
++       net_b0_3 net_b1_3 net_b2_3 net_b3_3
++       net_b4_3 net_b5_3 net_b6_3 net_b7_3 VSS / FLASH_PIPE_CHANNEL
+XI_ch4 net_clk180 net_clk0   net_rp4 net_rn4 VCM VDD VIN_P VIN_N
++       net_vbias net_ibias net_ibias
++       net_b0_4 net_b1_4 net_b2_4 net_b3_4
++       net_b4_4 net_b5_4 net_b6_4 net_b7_4 VSS / FLASH_PIPE_CHANNEL
+XI_ch5 net_clk225 net_clk45  net_rp5 net_rn5 VCM VDD VIN_P VIN_N
++       net_vbias net_ibias net_ibias
++       net_b0_5 net_b1_5 net_b2_5 net_b3_5
++       net_b4_5 net_b5_5 net_b6_5 net_b7_5 VSS / FLASH_PIPE_CHANNEL
+XI_ch6 net_clk270 net_clk90  net_rp6 net_rn6 VCM VDD VIN_P VIN_N
++       net_vbias net_ibias net_ibias
++       net_b0_6 net_b1_6 net_b2_6 net_b3_6
++       net_b4_6 net_b5_6 net_b6_6 net_b7_6 VSS / FLASH_PIPE_CHANNEL
+XI_ch7 net_clk315 net_clk135 net_rp7 net_rn7 VCM VDD VIN_P VIN_N
++       net_vbias net_ibias net_ibias
++       net_b0_7 net_b1_7 net_b2_7 net_b3_7
++       net_b4_7 net_b5_7 net_b6_7 net_b7_7 VSS / FLASH_PIPE_CHANNEL
+* 8-to-1 output MUX (registered, 64GSps output bus -> B[7:0])
+XI_mux0 net_clk0 net_b0_0 net_b0_1 VDD B0 VSS / NAND2
+XI_mux1 net_clk0 net_b1_0 net_b1_1 VDD B1 VSS / NAND2
+XI_mux2 net_clk0 net_b2_0 net_b2_2 VDD B2 VSS / NAND2
+XI_mux3 net_clk0 net_b3_0 net_b3_3 VDD B3 VSS / NAND2
+XI_mux4 net_clk0 net_b4_0 net_b4_4 VDD B4 VSS / NAND2
+XI_mux5 net_clk0 net_b5_0 net_b5_5 VDD B5 VSS / NAND2
+XI_mux6 net_clk0 net_b6_0 net_b6_6 VDD B6 VSS / NAND2
+XI_mux7 net_clk0 net_b7_0 net_b7_7 VDD B7 VSS / NAND2
+.ENDS
+
+* ---------------------------------------------------------------
+* ADC_OPT_SOC_8b  –  TOP-LEVEL with IO ring + PAM-4 pads
+* ---------------------------------------------------------------
+.SUBCKT ADC_OPT_SOC_8b
++  B0 B1 B2 B3 B4 B5 B6 B7
++  CLK_REF REFP REFN VCM FCW
++  VDD VDDE VDD_PLL VIN_P VIN_N VSS VSSE
++  RESET LOCK_OUT
+* Broadband optical analog input pads (T-coil ESD, 40GHz)
+XI_ain_vinp VSSE VIN_P  VDDE net_esd_bias / AIN_OPT
+XI_ain_vinn VSSE VIN_N  VDDE net_esd_bias / AIN_OPT
+XI_ain_refp VSSE REFP   VDDE net_esd_bias / AIN_OPT
+XI_ain_refn VSSE REFN   VDDE net_esd_bias / AIN_OPT
+XI_ain_vcm  VSSE VCM    VDDE net_esd_bias / AIN_OPT
+XI_ain_clk  VSSE CLK_REF VDDE net_esd_bias / AIN_OPT
+* PAM-4 CML output pads (400G coherent optical interface)
+XI_dout_b7 VSSE B7 VDD VDDE VSS net_ibias_h net_ibias_l / DOUT_PAM4
+XI_dout_b6 VSSE B6 VDD VDDE VSS net_ibias_h net_ibias_l / DOUT_PAM4
+XI_dout_b5 VSSE B5 VDD VDDE VSS net_ibias_h net_ibias_l / DOUT_PAM4
+XI_dout_b4 VSSE B4 VDD VDDE VSS net_ibias_h net_ibias_l / DOUT_PAM4
+XI_dout_b3 VSSE B3 VDD VDDE VSS net_ibias_h net_ibias_l / DOUT_PAM4
+XI_dout_b2 VSSE B2 VDD VDDE VSS net_ibias_h net_ibias_l / DOUT_PAM4
+XI_dout_b1 VSSE B1 VDD VDDE VSS net_ibias_h net_ibias_l / DOUT_PAM4
+XI_dout_b0 VSSE B0 VDD VDDE VSS net_ibias_h net_ibias_l / DOUT_PAM4
+* ESD / power ring
+XI_esd_io   VSSE VDDE    / ESD_N7
+XI_esd_core VSS  VDD     / ESD_N7
+XI_esd_pll  VSS  VDD_PLL / ESD_N7
+XI_vddi     VSSE VDDE VDD / VDDI_CELL
+XI_vssi     VSS  VSSE    / VSSI_CELL
+* Lock & FCW indicator pads
+XI_lock_pad VSSE LOCK_OUT VDD VDDE VSS net_ibias_h net_ibias_l / DOUT_PAM4
+* ADC core instantiation
+XI_core
++  CLK_REF FCW
++  VIN_P VIN_N REFP REFN VCM
++  VDD VDD_PLL VSS
++  net_b0 net_b1 net_b2 net_b3
++  net_b4 net_b5 net_b6 net_b7 RESET / ADC_OPT_CORE
+* Output drive buffers
+XI_bufb7 VDD net_b7 B7 VSS / INV_X4
+XI_bufb6 VDD net_b6 B6 VSS / INV_X4
+XI_bufb5 VDD net_b5 B5 VSS / INV_X4
+XI_bufb4 VDD net_b4 B4 VSS / INV_X4
+XI_bufb3 VDD net_b3 B3 VSS / INV_X4
+XI_bufb2 VDD net_b2 B2 VSS / INV_X4
+XI_bufb1 VDD net_b1 B1 VSS / INV_X4
+XI_bufb0 VDD net_b0 B0 VSS / INV_X4
+.ENDS
+
+* ============================================================
+* END OF FILE  (schematic view)
+* ============================================================

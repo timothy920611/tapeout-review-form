@@ -1,0 +1,158 @@
+*==================================================================
+* FILE   : STRONGARM_RAZAVI_65nm_v1.netlist
+* TOPO   : Modified StrongARM Latch (Razavi, "A Circuit for All
+*          Seasons", SSCM 2015, Fig.1(b)) + NAND-SR latch buffer
+* PROCESS: TSMC 65nm GP, BSIM4      [PDK-CHECK-REQUIRED]
+* SYNTAX : SPICE (ngspice / HSPICE / PySpice).  For native Spectre,
+*          wrap the deck with `simulator lang=spice`.
+* CONV   : M<name> D G S B  model  params    (pin order D,G,S,B)
+*          Bulk -> NMOS:VSS , PMOS:VDD   (per task checklist; see
+*          G2/R1 source-tied-bulk note below)
+*------------------------------------------------------------------
+* FIX LOG
+*   v1  : initial hand-design from Razavi Fig.1(b).
+*         - 4 precharge switches S1-S4 (P,Q,X,Y all -> VDD on CK=0)
+*         - SR_LATCH_BUF added to mask invalid X=Y=VDD half-cycle
+*         - relaxed-timing sanity TB (100MHz << 500MS/s spec)
+* OPEN ANNOTATIONS
+*   [UNVERIFIED-ESTIMATE] all W/L/m below -> need .tran/.meas sweep
+*   [PDK-CHECK-REQUIRED]  L=60n, VDD level, model names, DNW avail.
+*   [CONFIRM] Fix-like : each decision fires once per CK across
+*             corners (esp. SS/80C); add deglitch if metastable.
+*==================================================================
+
+
+*==================================================================
+* 1. CORE : Modified StrongARM Latch
+*==================================================================
+.SUBCKT STRONGARM_RAZAVI  CK VDD VSS VIN1 VIN2 VOUTP VOUTN
+*  VOUTP = X , VOUTN = Y  (paper notation)
+*  Internal: P,Q = diff-pair drains ; NTAIL = tail node
+*
+* ---- Tail switch (CK-gated) -------------------------------------
+MM7  NTAIL CK    VSS   VSS  nch  W=10u L=60n m=2     $ tail current
+*
+* ---- Clocked input differential pair ----------------------------
+MM1  P     VIN1  NTAIL VSS  nch  W=5u  L=60n m=2     $ drain -> P
+MM2  Q     VIN2  NTAIL VSS  nch  W=5u  L=60n m=2     $ drain -> Q
+*
+* ---- Cross-coupled NMOS  (regen, source @ P,Q) ------------------
+MM3  VOUTP VOUTN P     VSS  nch  W=2u  L=60n m=1     $ D=X G=Y S=P
+MM4  VOUTN VOUTP Q     VSS  nch  W=2u  L=60n m=1     $ D=Y G=X S=Q
+*
+* ---- Cross-coupled PMOS  (regen, source @ VDD) ------------------
+MM5  VOUTP VOUTN VDD   VDD  pch  W=4u  L=60n m=1     $ D=X G=Y S=VDD
+MM6  VOUTN VOUTP VDD   VDD  pch  W=4u  L=60n m=1     $ D=Y G=X S=VDD
+*
+* ---- Precharge switches (PMOS, ON when CK=0) --------------------
+MS1  P     CK    VDD   VDD  pch  W=2u  L=60n m=1     $ precharge P->VDD
+MS2  Q     CK    VDD   VDD  pch  W=2u  L=60n m=1     $ precharge Q->VDD
+MS3  VOUTP CK    VDD   VDD  pch  W=2u  L=60n m=1     $ precharge X->VDD
+MS4  VOUTN CK    VDD   VDD  pch  W=2u  L=60n m=1     $ precharge Y->VDD
+*
+* ---- G2/R1 NOTE [PDK-CHECK-REQUIRED] ----------------------------
+* SEM General Rule = NMOS bulk to SOURCE (body-effect removal on the
+* input pair M1/M2 @ NTAIL and regen pair M3/M4 @ P/Q). That needs
+* deep-nwell / triple-well isolation. This baseline ties NMOS bulk
+* to VSS (always-safe). For the _G2 variant, change the 4th pin of
+* MM1/MM2 -> NTAIL and MM3/MM4 -> P/Q respectively.
+.ENDS STRONGARM_RAZAVI
+
+
+*==================================================================
+* 2. BUILDING BLOCKS : CMOS NAND2 / INV
+*==================================================================
+.SUBCKT NAND2  A B Y VDD VSS
+MP1  Y  A VDD VDD pch W=2u L=60n m=1
+MP2  Y  B VDD VDD pch W=2u L=60n m=1
+MN1  Y  A NX  VSS nch W=2u L=60n m=1      $ series NMOS (top)
+MN2  NX B VSS VSS nch W=2u L=60n m=1      $ series NMOS (bottom)
+.ENDS NAND2
+
+.SUBCKT INV  A Y VDD VSS
+MP1  Y A VDD VDD pch W=2u L=60n m=1
+MN1  Y A VSS VSS nch W=1u L=60n m=1
+.ENDS INV
+
+
+*==================================================================
+* 3. SR latch (NAND, active-low) + output inverter buffers
+*    SETN = X(VOUTP) , RSTN = Y(VOUTN)
+*    (1,1)=hold (masks invalid reset) ; (0,1)->QI=1 ; (1,0)->QI=0
+*==================================================================
+.SUBCKT SR_LATCH_BUF  SETN RSTN  QOUT QOUTN  VDD VSS
+XNA  SETN  QBI   QI   VDD VSS  NAND2     $ NAND_A: out=QI
+XNB  RSTN  QI    QBI  VDD VSS  NAND2     $ NAND_B: out=QBI
+XB1  QI    QOUT  VDD VSS  INV            $ buffer / level-restore
+XB2  QBI   QOUTN VDD VSS  INV
+.ENDS SR_LATCH_BUF
+
+
+*==================================================================
+* 4. TOP WRAPPER : full clocked comparator
+*    Swap XNET<->YNET below to flip output polarity.
+*==================================================================
+.SUBCKT STRONGARM_COMP  CK VDD VSS VIN1 VIN2 QOUT QOUTN
+XSA  CK VDD VSS VIN1 VIN2  XNET YNET   STRONGARM_RAZAVI
+XSR  XNET YNET  QOUT QOUTN  VDD VSS    SR_LATCH_BUF
+.ENDS STRONGARM_COMP
+
+
+*==================================================================
+* 5. SANITY TESTBENCH  (relaxed timing, isolates function vs speed)
+*    Layered verification: this deck covers (a) DC op-point and
+*    (b) transient functional. FFT/corners/MC come in later decks.
+*    Comment out section 5 (down to .end) to use as a pure library.
+*==================================================================
+.PARAM VDD_VAL = 1.0           $ [PDK-CHECK-REQUIRED] 65nm GP core
+.PARAM VCM     = 0.6           $ input common-mode
+.PARAM VD      = 50m           $ differential half-amplitude
+.PARAM TCK     = 10n           $ 100MHz  (<< 500MS/s spec, relaxed)
+
+* ---- PDK models (supply your own) -------------------------------
+* .LIB  '/path/to/tsmc65_models.lib'  TT     $ [PDK-CHECK-REQUIRED]
+
+* ---- Supplies ---------------------------------------------------
+VVDD  VDD 0 DC {VDD_VAL}
+VVSS  VSS 0 DC 0
+
+* ---- Clock : 50% duty, sharp edges ------------------------------
+VCK   CK  0 PULSE(0 {VDD_VAL} 1n 100p 100p {TCK/2-100p} {TCK})
+
+* ---- Differential inputs ----------------------------------------
+* First half (t<50n): VIN1>VIN2  -> expect X->0
+* Second half(t>50n): VIN1<VIN2  -> expect Y->0
+VINP  VIN1 0 PWL(0      {VCM+VD}
++                 49.9n {VCM+VD}
++                 50.0n {VCM-VD}
++                 100n  {VCM-VD})
+VINN  VIN2 0 DC {VCM}
+
+* ---- DUT --------------------------------------------------------
+XDUT  CK VDD VSS VIN1 VIN2  QOUT QOUTN  STRONGARM_COMP
+
+* ---- Probes (hierarchical) --------------------------------------
+* ngspice/HSPICE path = XDUT.XSA.P  ;  internal X/Y = XDUT.XNET ...
+.SAVE V(CK) V(VIN1) V(VIN2) V(QOUT) V(QOUTN)
++     V(XDUT.XNET) V(XDUT.YNET)
++     V(XDUT.XSA.P) V(XDUT.XSA.Q) V(XDUT.XSA.NTAIL)
+
+* ---- Analyses ---------------------------------------------------
+.OP                                    $ DC operating point sanity
+.TRAN 1p 100n
+
+* ---- Functional .MEAS (relaxed sampling instants) ---------------
+* Sample QOUT well after each decision settles.
+.MEAS TRAN q_phase1 FIND V(QOUT)  AT=44n   $ VIN1>VIN2 window
+.MEAS TRAN q_phase2 FIND V(QOUT)  AT=94n   $ VIN1<VIN2 window
+.MEAS TRAN x_low_p1 MIN  V(XDUT.XNET) FROM=40n TO=45n  $ X should dip
+.MEAS TRAN y_low_p2 MIN  V(XDUT.YNET) FROM=90n TO=95n  $ Y should dip
+
+* ---- [CONFIRM] edge-count (Fix-31 style) ------------------------
+* Pure .MEAS cannot count N crossings directly. For per-corner
+* "exactly one decision per CK" verification, post-process the
+* saved V(XDUT.XNET)/V(XDUT.YNET) waveform (count VDD->0 edges) or
+* attach a Verilog-A edge monitor. Run at SS/80C; add a deglitch
+* stage on X/Y if metastable double-edges appear.   [CONFIRM]
+
+.END
