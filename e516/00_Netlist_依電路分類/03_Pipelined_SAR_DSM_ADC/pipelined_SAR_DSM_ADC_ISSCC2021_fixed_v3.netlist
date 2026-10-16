@@ -1,0 +1,581 @@
+************************************************************************
+* auCdl Netlist:
+*
+* Library Name:  SAR_DSM_7nm
+* Top Cell Name: PIPE_SAR_DSM_ADC_12b
+* View Name:     schematic
+* Technology:    Samsung 7nm FinFET (SF7P process)
+* VDD_CORE:      0.8V   (analog / digital core)
+* Resolution:    12-bit
+* Sample Rate:   600 MS/s  (2x-interleaved, 300 MS/s per DSM channel)
+* Architecture:  Pipelined SAR (1st stage, 7b) +
+*                2x-Interleaved CT Incremental Delta-Sigma (2nd stage, 6.5b) +
+*                Source-Follower-Based Residue-Transfer Scheme
+* SNDR:          58.2 dB @ 300 MS/s  /  56.6 dB @ 600 MS/s (measured)
+* SFDR:          79.4 dB @ 300 MS/s  /  71.1 dB @ 600 MS/s (measured)
+* Power:         13 mW @ 0.8V, 600 MS/s  (RT-BUF alone: 0.7 mW)
+* FoM_Walden:    45.6 fJ/conv-step @ Nyquist
+* FoM_Schreier:  158.9 dB @ Nyquist
+* Die Area:      0.037 mm^2  (160 um x 230 um)
+* Gain Cal:      NONE  (replica-based inter-stage gain matching)
+* Reference:     Baek et al., ISSCC 2021, Session 10.5
+*                "A 12b 600MS/s Pipelined SAR and 2x-Interleaved Incremental
+*                 Delta-Sigma ADC with Source-Follower-Based Residue-Transfer
+*                 Scheme in 7nm FinFET", Samsung Electronics, Korea
+* Date:          2026-06-01
+*
+* ---- Revision History ----
+* fixed_v2  2026-06-17
+*   Inst-1: DFF_SR_N7 master-latch keeper loop fixed (net_mb_fb + XI_inv_fb)
+*   Inst-2: PHASE_SPLIT_CTRL added; output MUX now driven by CK_OUT_MUX
+*   Inst-3: RT_BUF_SF7 / FB_BUF_SF7 SF device Bulk tied to Source (SEM G2)
+*   Inst-4: SEM Failure Rules F7 [Interleaving] and F8 [MUX_Glitch] added
+* fixed_v3  2026-06-17  (verification re-fix pass)
+*   01 DFF_SR_N7  : keeper rebuilt as canonical gated 2-inversion latch
+*                   (v2 left single-inversion loops + ungated contention)
+*   02 RT_BUF_SF7 : SF NMOS bulk returned VS_P/VS_N -> VSS (R1/LVS; bulk
+*                   FinFET cannot source-tie an NMOS body without triple well)
+*   03 ASC_CLK_GEN: floating net_sr0 seeded from CK_REF; dangling XI_dlc1 removed
+*   04 PHASE_SPLIT: stuck logic replaced by SR-latch select + retiming buffer
+*   05 MUX2 cell  : added; XI_mux[11:0] re-mapped (was 6-node on 5-pin NAND2)
+*   06 XI_asc     : port count 8 -> 7 (stray CKASC node removed)
+*   07 DSM_QUANT  : D=Q short removed; comparators -> regs (QB preserves sign)
+*   08 CDAC_7b    : termination dummy XI_tm tied to VSS (fixed 1Cu, was 2x LSB)
+*   09 FB_BUF     : replica CDAC SAMPLE moved off VCM mid-rail -> VSS
+*   10 RESET      : documented as reserved/unconnected (pinout preserved)
+************************************************************************
+
+.PARAM
++ VDD_CORE=0.8
++ VCM=0.4
++ VREF=0.8
++ FS=600MEG
++ FCLK_DSM=4.8G
++ CU=2.7F
++ NFIN_N=2
++ NFIN_P=2
+
+* ---------------------------------------------------------------
+* FinFET primitive model mapping  (Samsung SF7P / 7nm)
+*   N_SF7  : nFinFET  Wfin=7n  Lfin=7n  (Hfin~52nm)
+*   P_SF7  : pFinFET  Wfin=7n  Lfin=7n
+* Note: W = Nfin x Wfin_eff; use M= for multiplicity
+*       1 fin -> Weff ~ 6nm (contacted poly pitch ~54nm)
+* ---------------------------------------------------------------
+
+* ---------------------------------------------------------------
+* Standard cell primitives  (SF7P)
+* ---------------------------------------------------------------
+.SUBCKT INV VDD VIN VOUT VSS
+MM0  VOUT VIN VSS  VSS  N_SF7 W=42n L=7n M=2
+MM1  VOUT VIN VDD  VDD  P_SF7 W=42n L=7n M=2
+.ENDS
+
+.SUBCKT INV_X4 VDD VIN VOUT VSS
+MM0  net_x  VIN VSS  VSS  N_SF7 W=42n L=7n M=4
+MM1  net_x  VIN VDD  VDD  P_SF7 W=42n L=7n M=4
+MM2  VOUT net_x VSS  VSS  N_SF7 W=42n L=7n M=8
+MM3  VOUT net_x VDD  VDD  P_SF7 W=42n L=7n M=8
+.ENDS
+
+.SUBCKT NAND2 A B VDD VOUT VSS
+MM0  VOUT A   VDD  VDD  P_SF7 W=42n L=7n M=2
+MM1  VOUT B   VDD  VDD  P_SF7 W=42n L=7n M=2
+MM2  VOUT A   net0 VSS  N_SF7 W=42n L=7n M=4
+MM3  net0 B   VSS  VSS  N_SF7 W=42n L=7n M=4
+.ENDS
+
+.SUBCKT NOR2 A B VDD VOUT VSS
+MM0  net0 A   VDD  VDD  P_SF7 W=84n L=7n M=4
+MM1  VOUT B   net0 VDD  P_SF7 W=84n L=7n M=4
+MM2  VOUT A   VSS  VSS  N_SF7 W=42n L=7n M=2
+MM3  VOUT B   VSS  VSS  N_SF7 W=42n L=7n M=2
+.ENDS
+
+.SUBCKT AND2 A B VDD VOUT VSS
+XI0  A B VDD net_nd VSS / NAND2
+XI1  VDD net_nd VOUT VSS / INV
+.ENDS
+
+* ---------------------------------------------------------------
+* MUX2  -- [fixed_v3] non-inverting 2:1 multiplexer
+*   Y = (SEL & A) | (~SEL & B).  Replaces the previous misuse of a
+*   single NAND2 as a MUX (which was both port-count-wrong and
+*   functionally incapable of selecting between two data inputs).
+* ---------------------------------------------------------------
+.SUBCKT MUX2 VDD SEL A B Y VSS
+XI_invs  VDD SEL       net_selb VSS / INV
+XI_a0    SEL A         VDD net_a0  VSS / AND2
+XI_a1    net_selb B    VDD net_a1  VSS / AND2
+XI_nor   net_a0 net_a1 VDD net_orb VSS / NOR2
+XI_out   VDD net_orb   Y           VSS / INV
+.ENDS
+
+* ---------------------------------------------------------------
+* TG_SF7  -- 7nm transmission gate
+* ---------------------------------------------------------------
+.SUBCKT TG_SF7 CLK CLK_B VDD VIN VOUT VSS
+MM0  VIN CLK   VOUT VSS  N_SF7 W=42n L=7n M=2
+MM1  VIN CLK_B VOUT VDD  P_SF7 W=42n L=7n M=2
+.ENDS
+
+* ---------------------------------------------------------------
+* DFF_SR_N7  -- D flip-flop (master-slave)
+*   Used in SAR shift register (EOC) and ASC calibration
+*
+* [fixed_v2 / Instruction-1]  Drive-conflict fix (Weste & Harris
+*   standard static CMOS master-slave structure):
+*   Problem : XI_tg1 and XI_inv0 both drove net_mb -> bus conflict.
+*   Fix     : XI_tg1 now drives new internal node net_mb_fb.
+*             A new feedback inverter XI_inv_fb converts net_mb_fb
+*             back to net_m, forming the correct static keeper loop
+*             for the master latch.  XI_inv0 remains the sole forward
+*             driver of net_mb; XI_tg2 (slave TG) reads net_m only.
+*   Result  : Single driver on every node; no contention.
+* ---------------------------------------------------------------
+.SUBCKT DFF_SR_N7 CK D VDD Q QB VSS
+* [fixed_v3 / Instruction-1 re-fix] Canonical static TG master-slave DFF.
+*   Each latch keeper is a TWO-inverter loop whose return path is gated by
+*   the feedback TG, so during the transparent phase the storage node is
+*   driven ONLY by the input TG (no keeper-vs-input contention), and during
+*   hold the gated 2-inversion loop holds it.  Q = ~D (negative-edge),
+*   identical polarity to the original cell -> no downstream change.
+XI_ck_inv  VDD CK        net_ckb     VSS / INV
+XI_tg0     CK  net_ckb   VDD D        net_m     VSS / TG_SF7
+XI_inv0    VDD net_m     net_mb                 VSS / INV
+XI_inv_fb  VDD net_mb    net_m_fb               VSS / INV
+XI_tg1     net_ckb CK    VDD net_m_fb net_m     VSS / TG_SF7
+XI_tg2     net_ckb CK    VDD net_m    net_s     VSS / TG_SF7
+XI_inv1    VDD net_s     net_sb                 VSS / INV
+XI_inv_sb  VDD net_sb    net_s_fb               VSS / INV
+XI_tg3     CK  net_ckb   VDD net_s_fb net_s     VSS / TG_SF7
+XI_inv_q   VDD net_s     Q                      VSS / INV
+XI_inv_qb  VDD Q         QB                     VSS / INV
+.ENDS
+
+* ---------------------------------------------------------------
+* Bootstrap_SW_SF7  -- Bootstrapped bottom-plate sampling switch
+*   Constant Vgs -> signal-independent Ron for linearity
+*   Per paper: bootstrapped bottom-plate sampling in 1st stage
+* ---------------------------------------------------------------
+.SUBCKT Bootstrap_SW_SF7 CK VDD VIN VOUT VSS
+MM_sw    VOUT    net_g   VIN      VSS  N_SF7 W=84n L=7n  M=4
+MM_bs1   VIN     net_g   net_fly  VSS  N_SF7 W=42n L=7n  M=2
+MM_bs2   net_fly net_off VSS      VSS  N_SF7 W=42n L=7n  M=2
+MM_bs3   net_bs3 net_off VSS      VSS  N_SF7 W=42n L=7n  M=2
+MM_pg    net_g   net_off net_fly  net_fly P_SF7 W=42n L=7n M=2
+MM_chg   net_fly net_off VDD      net_fly P_SF7 W=42n L=7n M=2
+CC_fly   net_fly net_bs3 3.2f     $[MOMCAP_SF7] M=4
+XI_inv   VDD CK net_off VSS / INV
+.ENDS
+
+* ---------------------------------------------------------------
+* CDAC_SW_SF7  -- CDAC switch cell (differential monotonic)
+*   Bottom-plate drives REFP/REFN per SAR bit decision
+*   M_TG scales switch width by bit weight (M=64 for MSB)
+* ---------------------------------------------------------------
+.SUBCKT CDAC_SW_SF7 D REFN REFP SAMPLE VDD VINP VINN VOUTP VOUTN VSS M_TG=1
+XI_inv0  VDD SAMPLE  net_sl0 VSS / INV
+XI_inv1  VDD D       net_sl1 VSS / INV
+XI_inv2  VDD net_sl3 net_sl2 VSS / INV
+XI_inv3  VDD net_sl4 net_sl5 VSS / INV
+XI_and0  net_sl1 net_sl0 VDD net_sl3 VSS / AND2
+XI_and1  D net_sl0 VDD net_sl6 VSS / AND2
+XI_inv4  VDD net_sl6 net_sl4 VSS / INV
+MM_sp0  VINP  SAMPLE  VOUTP VSS  N_SF7 W=42n L=7n M='M_TG'
+MM_sp1  VINP  SAMPLE  VOUTP VDD  P_SF7 W=42n L=7n M='M_TG'
+MM_rp0  REFP  net_sl3 VOUTP VSS  N_SF7 W=42n L=7n M='M_TG'
+MM_rp1  REFP  net_sl2 VOUTP VDD  P_SF7 W=42n L=7n M='M_TG'
+MM_np0  REFN  net_sl4 VOUTP VSS  N_SF7 W=42n L=7n M='M_TG'
+MM_np1  REFN  net_sl5 VOUTP VDD  P_SF7 W=42n L=7n M='M_TG'
+MM_sn0  VINN  SAMPLE  VOUTN VSS  N_SF7 W=42n L=7n M='M_TG'
+MM_sn1  VINN  SAMPLE  VOUTN VDD  P_SF7 W=42n L=7n M='M_TG'
+MM_rn0  REFN  net_sl3 VOUTN VSS  N_SF7 W=42n L=7n M='M_TG'
+MM_rn1  REFN  net_sl2 VOUTN VDD  P_SF7 W=42n L=7n M='M_TG'
+MM_nn0  REFP  net_sl4 VOUTN VSS  N_SF7 W=42n L=7n M='M_TG'
+MM_nn1  REFP  net_sl5 VOUTN VDD  P_SF7 W=42n L=7n M='M_TG'
+.ENDS
+
+* ---------------------------------------------------------------
+* CDAC_7b_SF7  -- 7-bit binary-weighted CDAC
+*   Cu = 2.7 fF  -> Total per side = 128 x 2.7fF = 345.6 fF
+*   Differential total sampling cap = 691.2 fF ~ 690 fF (per paper)
+*   MSB = 64Cu, LSB = 1Cu, plus 1Cu termination dummy
+*   1.5b redundancy: inter-stage offset trimmed via CDAC offset code
+* ---------------------------------------------------------------
+.SUBCKT CDAC_7b_SF7 B6 B5 B4 B3 B2 B1 B0
++  REFN REFP SAMPLE VDD VINP VINN VOUTP VOUTN VSS
+CC_tp_p   VOUTP VSS 345.6f $[MOMCAP_SF7] M=1
+CC_tp_n   VOUTN VSS 345.6f $[MOMCAP_SF7] M=1
+CC_par_p  VOUTP VSS  17.3f $[MOMCAP_SF7] M=1
+CC_par_n  VOUTN VSS  17.3f $[MOMCAP_SF7] M=1
+XI_b6  B6 REFN REFP SAMPLE VDD VINP VINN VOUTP VOUTN VSS M_TG=64 / CDAC_SW_SF7
+XI_b5  B5 REFN REFP SAMPLE VDD VINP VINN VOUTP VOUTN VSS M_TG=32 / CDAC_SW_SF7
+XI_b4  B4 REFN REFP SAMPLE VDD VINP VINN VOUTP VOUTN VSS M_TG=16 / CDAC_SW_SF7
+XI_b3  B3 REFN REFP SAMPLE VDD VINP VINN VOUTP VOUTN VSS M_TG=8  / CDAC_SW_SF7
+XI_b2  B2 REFN REFP SAMPLE VDD VINP VINN VOUTP VOUTN VSS M_TG=4  / CDAC_SW_SF7
+XI_b1  B1 REFN REFP SAMPLE VDD VINP VINN VOUTP VOUTN VSS M_TG=2  / CDAC_SW_SF7
+XI_b0  B0 REFN REFP SAMPLE VDD VINP VINN VOUTP VOUTN VSS M_TG=1  / CDAC_SW_SF7
+XI_tm  VSS REFN REFP SAMPLE VDD VINP VINN VOUTP VOUTN VSS M_TG=1  / CDAC_SW_SF7
+.ENDS
+
+* ---------------------------------------------------------------
+* COMP_DYN_SF7  -- Dynamic Strong-ARM latch comparator
+*   No static current; clocked by CKASC
+*   Replicated as dummy in DSM FB path for parasitic matching
+*   (Fig. 10.5.2: dummy comparator in feedback path)
+* ---------------------------------------------------------------
+.SUBCKT COMP_DYN_SF7 CK VDD VINP VINN VOUTP VOUTN VSS
+MM_pp    VOUTP CK    VDD   VDD  P_SF7 W=84n  L=7n M=4
+MM_pn    VOUTN CK    VDD   VDD  P_SF7 W=84n  L=7n M=4
+MM_rp    VOUTP VOUTN VDD   VDD  P_SF7 W=42n  L=7n M=2
+MM_rn    VOUTN VOUTP VDD   VDD  P_SF7 W=42n  L=7n M=2
+MM_inp   VINTP VINP  net_s VSS  N_SF7 W=126n L=7n M=6
+MM_inn   VINTN VINN  net_s VSS  N_SF7 W=126n L=7n M=6
+MM_op    VOUTP VINTP net_s VSS  N_SF7 W=84n  L=7n M=4
+MM_on    VOUTN VINTN net_s VSS  N_SF7 W=84n  L=7n M=4
+MM_tail  net_s CK    VSS   VSS  N_SF7 W=84n  L=7n M=4
+.ENDS
+
+* ---------------------------------------------------------------
+* PHASE_SPLIT_CTRL  -- 50% duty-cycle merged-clock MUX controller
+*   [fixed_v2 / Instruction-2]  Output MUX clock fix:
+*   Problem : All MUX gates used CKSAMP_CH0 alone; CH1 data was
+*             incorrectly gated and would not interleave properly.
+*   Fix     : This sub-circuit XORs CKSAMP_CH0 and CKSAMP_CH1 via
+*             NAND-NAND to produce CK_OUT_MUX that toggles at the
+*             full 600 MS/s rate with 50% duty cycle.
+*             CK_OUT_MUX is now the sole control for XI_mux[11:0].
+*   Topology : CK_OUT_MUX = NOT(NOT(A·B) · NOT(A'·B'))
+*              implemented as two NAND2 + NOR2:
+*                net_and  = NAND(A, B_inv) -> high when CH0 high & CH1 low
+*                net_or   = NAND(A_inv, B) -> high when CH0 low  & CH1 high
+*                CK_OUT_MUX = NOR(net_nand0, net_nand1) inverted
+*              Net result: toggles every half-period, 50% duty cycle.
+* ---------------------------------------------------------------
+.SUBCKT PHASE_SPLIT_CTRL CK0 CK1 VDD CK_OUT_MUX VSS
+* [fixed_v3 / Instruction-2 re-fix]
+*   The previous NAND-NAND-NOR-INV network evaluated to a near-constant
+*   level, so CK_OUT_MUX was effectively stuck and the output MUX never
+*   alternated channels.  Replaced with a NOR-based set/reset select:
+*     CK0 high -> set   (select CH0)
+*     CK1 high -> reset (select CH1)
+*   This is robust to duty-cycle error and inter-channel skew (non-overlap
+*   guarantees S and R are never both asserted).  The two output inverters
+*   re-buffer/retime the select (also serves SEM rule F8 retiming).
+XI_srq    CK1 net_qb   VDD net_q    VSS / NOR2
+XI_srqb   CK0 net_q    VDD net_qb   VSS / NOR2
+XI_buf0   VDD net_q    net_selb     VSS / INV
+XI_buf1   VDD net_selb CK_OUT_MUX   VSS / INV
+.ENDS
+
+* ---------------------------------------------------------------
+* RT_BUF_SF7  -- Source-Follower Residue Transfer Buffer
+*   Paper key innovation: open-loop SF TRANSFERS residue (no gain)
+*   Non-amplified small residue resolved by wide-DR DSM 2nd stage
+*   Power: 0.7 mW @ 0.8V  =>  Ibias = 875 uA total differential
+*   PVT robust; design complexity relaxed; no gain calibration
+*
+*   [fixed_v2 / Instruction-3]  Bulk-tie linearity fix (SEM Rule G2):
+*   Problem : MM_sfp and MM_sfn had Bulk tied to VSS, introducing
+*             signal-dependent body effect that degrades gain accuracy
+*             (Asf < 1) and linearity, violating F1 [Gain] rule.
+*   Fix     : Bulk of each source-follower NMOS is now tied to its
+*             own Source node (VS_P / VS_N) — Source-tied Bulk.
+*             This eliminates Vbs modulation, making Vth signal-
+*             independent -> Asf -> 1, SFDR improvement ~6-8 dB.
+* ---------------------------------------------------------------
+.SUBCKT RT_BUF_SF7 VDD VINP VINN VOUTP VOUTN VBIAS VSS
+* [fixed_v3 / Instruction-3 re-fix] R1/LVS compliance:
+*   Source-tied bulk on an NMOS is NOT realizable in a standard bulk-FinFET
+*   (shared p-substrate) without a deep-NWELL isolated p-well.  Bulk is
+*   returned to VSS.  If Asf->1 (body-effect cancellation) is critical,
+*   the recommended path is a triple-well NMOS (explicit deep-NWELL device)
+*   OR a PMOS source-follower in its own n-well tied to source -- flagged
+*   for designer decision; do not re-tie NMOS bulk to a floating source.
+MM_sfp   VOUTP VINP  VS_P  VSS  N_SF7 W=504n L=7n  M=12
+MM_sfn   VOUTN VINN  VS_N  VSS  N_SF7 W=504n L=7n  M=12
+MM_bp    VS_P  VBIAS VDD   VDD  P_SF7 W=252n L=14n M=6
+MM_bn    VS_N  VBIAS VDD   VDD  P_SF7 W=252n L=14n M=6
+CC_byp_p VS_P  VSS   20.0f $[MOMCAP_SF7] M=2
+CC_byp_n VS_N  VSS   20.0f $[MOMCAP_SF7] M=2
+CC_ld_p  VOUTP VSS   50.0f $[MOMCAP_SF7] M=4
+CC_ld_n  VOUTN VSS   50.0f $[MOMCAP_SF7] M=4
+.ENDS
+
+* ---------------------------------------------------------------
+* FB_BUF_SF7  -- Feedback Path Replica (FB-BUF)
+*   Replicates CDAC + RT_BUF in DSM feedback path
+*   Ensures A_SIG / A_FB = 1  ->  gain mismatch term = 0
+*   (Equation in Fig. 10.5.2: Dout = Vin + noise-shaping term)
+*   Shared VBIAS + adjacent layout for chip-to-chip PVT tracking
+*   7b CDAC also used for inter-stage OFFSET calibration
+*
+*   [fixed_v2 / Instruction-3]  Bulk-tie linearity fix (SEM Rule G2):
+*   XI_rtsf instantiates RT_BUF_SF7 which now has Source-tied Bulk
+*   on all SF devices.  FB path inherits the same Asf -> 1 fix,
+*   maintaining A_SIG / A_FB tracking and preserving gain cancellation.
+* ---------------------------------------------------------------
+.SUBCKT FB_BUF_SF7 VDD DSMQ REFN REFP VCM VOUTP VOUTN VBIAS VSS
+XI_rcdac  DSMQ DSMQ DSMQ DSMQ DSMQ DSMQ DSMQ
++  REFN REFP VSS VDD REFP REFN net_fbp net_fbn VSS / CDAC_7b_SF7
+XI_rtsf   VDD net_fbp net_fbn VOUTP VOUTN VBIAS VSS / RT_BUF_SF7
+XI_dcomp  VCM VDD net_fbp net_fbn net_dcp net_dcn VSS / COMP_DYN_SF7
+CC_dc_p   net_dcp VSS 5.0f $[MOMCAP_SF7] M=1
+CC_dc_n   net_dcn VSS 5.0f $[MOMCAP_SF7] M=1
+.ENDS
+
+* ---------------------------------------------------------------
+* GMC_INTEG_SF7  -- Gm-C Integrator for CT DSM 2nd stage
+*   Gm-C enabled by coarse-resolved (small swing) residue input
+*   Paper: "coarse-converted residue enables power-efficient Gm-C"
+*   Active-RC not used due to higher power vs Gm-C here
+*   Gm ~ 1 mA/V;  C_INT = 100 fF
+* ---------------------------------------------------------------
+.SUBCKT GMC_INTEG_SF7 VDD VINP VINN VOUTP VOUTN VBIAS VSS
+MM_inp   net_ip VINP  net_t VSS  N_SF7 W=126n L=14n M=6
+MM_inn   net_in VINN  net_t VSS  N_SF7 W=126n L=14n M=6
+MM_lp    net_ip net_ip VDD  VDD  P_SF7 W=84n  L=14n M=4
+MM_ln    net_in net_ip VDD  VDD  P_SF7 W=84n  L=14n M=4
+MM_tail  net_t  VBIAS  VSS  VSS  N_SF7 W=84n  L=14n M=4
+MM_outp  VOUTP  net_ip VDD  VDD  P_SF7 W=168n L=7n  M=8
+MM_outn  VOUTN  net_in VDD  VDD  P_SF7 W=168n L=7n  M=8
+MM_op_n  VOUTP  net_in VSS  VSS  N_SF7 W=84n  L=7n  M=4
+MM_on_n  VOUTN  net_ip VSS  VSS  N_SF7 W=84n  L=7n  M=4
+CC_intp  VOUTP VSS 100.0f $[MOMCAP_SF7] M=8
+CC_intn  VOUTN VSS 100.0f $[MOMCAP_SF7] M=8
+CC_sump  VOUTP VSS  50.0f $[MOMCAP_SF7] M=4
+CC_sumn  VOUTN VSS  50.0f $[MOMCAP_SF7] M=4
+.ENDS
+
+* ---------------------------------------------------------------
+* DSM_QUANT_1p5b  -- 1.5b (3-level) flash quantizer
+*   Two COMP_DYN_SF7 with +/-Vref/4 effective thresholds
+*   Output: QOUT_H (upper), QOUT_L (lower) thermometer codes
+*   Registered outputs to suppress metastability propagation
+* ---------------------------------------------------------------
+.SUBCKT DSM_QUANT_1p5b CKDSM VDD VINP VINN VCM
++  QOUT_HP QOUT_HN QOUT_LP QOUT_LN VSS
+* [fixed_v3] Comparators drive distinct nodes; DFFs register them into
+*   QOUT_*.  Output is taken from the QB pin because this cell's Q=~D, so
+*   QB preserves the comparator polarity (keeps DSM loop sign correct).
+*   net_*qx are the unused complementary taps.
+XI_comp_h  CKDSM VDD VINP VINN net_chp net_chn VSS / COMP_DYN_SF7
+XI_comp_l  CKDSM VDD VINN VINP net_clp net_cln VSS / COMP_DYN_SF7
+XI_reg_hp  CKDSM net_chp VDD net_hpqx QOUT_HP VSS / DFF_SR_N7
+XI_reg_hn  CKDSM net_chn VDD net_hnqx QOUT_HN VSS / DFF_SR_N7
+XI_reg_lp  CKDSM net_clp VDD net_lpqx QOUT_LP VSS / DFF_SR_N7
+XI_reg_ln  CKDSM net_cln VDD net_lnqx QOUT_LN VSS / DFF_SR_N7
+.ENDS
+
+* ---------------------------------------------------------------
+* CT_DSM_CH_SF7  -- 2nd-order CT Incremental DSM (single channel)
+*   6.5b resolution (including 1.5b redundancy)
+*   300 MS/s operation; 14 cycles of 4.8 GHz CKDSM
+*   Input = small residue from RT_BUF (coarse pre-quantized)
+*   2nd-order noise shaping maximizes H(s) to minimize Q-noise
+* ---------------------------------------------------------------
+.SUBCKT CT_DSM_CH_SF7 CKDSM VDD
++  RESINP RESINN REFP REFN VCM VBIAS
++  BOUT5 BOUT4 BOUT3 BOUT2 BOUT1 BOUT0 VSS
+XI_intg1  VDD RESINP RESINN VINT1P VINT1N VBIAS VSS / GMC_INTEG_SF7
+XI_intg2  VDD VINT1P VINT1N VINT2P VINT2N VBIAS VSS / GMC_INTEG_SF7
+CC_sum1p  VINT1P VSUMP 50.0f $[MOMCAP_SF7] M=4
+CC_sum1n  VINT1N VSUMN 50.0f $[MOMCAP_SF7] M=4
+CC_sum2p  VINT2P VSUMP 50.0f $[MOMCAP_SF7] M=4
+CC_sum2n  VINT2N VSUMN 50.0f $[MOMCAP_SF7] M=4
+XI_quant  CKDSM VDD VSUMP VSUMN VCM
++  net_qhp net_qhn net_qlp net_qln VSS / DSM_QUANT_1p5b
+XI_fbuf   VDD net_qhp REFN REFP VCM net_fbp net_fbn VBIAS VSS / FB_BUF_SF7
+G_fb_p    VINT1P VCM  net_fbp VCM  500u
+G_fb_n    VINT1N VCM  net_fbn VCM  500u
+XI_dreg5  CKDSM net_qhp VDD BOUT5 net_b5b VSS / DFF_SR_N7
+XI_dreg4  CKDSM net_qhn VDD BOUT4 net_b4b VSS / DFF_SR_N7
+XI_dreg3  CKDSM net_qlp VDD BOUT3 net_b3b VSS / DFF_SR_N7
+XI_dreg2  CKDSM net_qln VDD BOUT2 net_b2b VSS / DFF_SR_N7
+XI_dreg1  CKDSM net_qhp VDD BOUT1 net_b1b VSS / DFF_SR_N7
+XI_dreg0  CKDSM net_qlp VDD BOUT0 net_b0b VSS / DFF_SR_N7
+.ENDS
+
+* ---------------------------------------------------------------
+* ASC_CLK_GEN_SF7  -- Adaptive Speed-Controlled clock generator
+*   Duration-fixed CKASC = 7 cycles per SAR conversion period
+*   Background frequency calibration via delay-line controller
+*   DAC settles immediately after comparator decision (async-like)
+*   Fixed period guarantees robust SAR operation (sync-like)
+*   CKSAMP provides low-jitter sampling; CKASC jitter relaxed
+* ---------------------------------------------------------------
+.SUBCKT ASC_CLK_GEN_SF7 CK_REF VDD CKASC EOC1 EOC0 GSEL VSS
+XI_ro0   VDD net_ro1 net_ro0 VSS / INV
+XI_ro1   VDD net_ro0 net_ro2 VSS / INV
+XI_ro2   VDD net_ro2 net_ro1 VSS / INV
+CC_sel0  net_ro0 VSS 0.5f $[MOMCAP_SF7] M=1
+CC_sel1  net_ro1 VSS 0.5f $[MOMCAP_SF7] M=2
+CC_sel2  net_ro2 VSS 0.5f $[MOMCAP_SF7] M=4
+XI_obuf0 VDD net_ro1 net_asc_i VSS / INV
+XI_obuf1 VDD net_asc_i CKASC   VSS / INV_X4
+XI_sr0   CKASC CK_REF VDD net_sr1 net_sr1b VSS / DFF_SR_N7
+XI_sr1   CKASC net_sr1 VDD net_sr2 net_sr2b VSS / DFF_SR_N7
+XI_sr2   CKASC net_sr2 VDD net_sr3 net_sr3b VSS / DFF_SR_N7
+XI_sr3   CKASC net_sr3 VDD net_sr4 net_sr4b VSS / DFF_SR_N7
+XI_sr4   CKASC net_sr4 VDD net_sr5 net_sr5b VSS / DFF_SR_N7
+XI_sr5   CKASC net_sr5 VDD net_sr6 net_sr6b VSS / DFF_SR_N7
+XI_sr6   CKASC net_sr6 VDD net_sr7 net_sr7b VSS / DFF_SR_N7
+XI_eoc0  net_sr6 net_sr7 VDD EOC0 VSS / NAND2
+XI_eoc1  net_sr5 net_sr6 VDD EOC1 VSS / NAND2
+XI_dlc0  CK_REF EOC0 VDD net_dlc0 VSS / NAND2
+XI_gsel  VDD net_dlc0 GSEL VSS / INV
+.ENDS
+
+* ---------------------------------------------------------------
+* SAR_LOGIC_7b  -- 7-bit SAR state machine
+*   7 equally periodic cycles clocked by CKASC
+*   Generates B[6:0] and CDAC control signals
+*   Comparator offset removed via CDAC offset code (FB_BUF path)
+* ---------------------------------------------------------------
+.SUBCKT SAR_LOGIC_7b CKASC COMP_P COMP_N VDD
++  B6 B5 B4 B3 B2 B1 B0 EOC VSS
+XI_br6  CKASC COMP_P VDD B6 net_b6b VSS / DFF_SR_N7
+XI_br5  CKASC COMP_P VDD B5 net_b5b VSS / DFF_SR_N7
+XI_br4  CKASC COMP_P VDD B4 net_b4b VSS / DFF_SR_N7
+XI_br3  CKASC COMP_P VDD B3 net_b3b VSS / DFF_SR_N7
+XI_br2  CKASC COMP_P VDD B2 net_b2b VSS / DFF_SR_N7
+XI_br1  CKASC COMP_P VDD B1 net_b1b VSS / DFF_SR_N7
+XI_br0  CKASC COMP_P VDD B0 net_b0b VSS / DFF_SR_N7
+XI_eoc_inv VDD B0 EOC VSS / INV
+.ENDS
+
+* ---------------------------------------------------------------
+* PIPE_SAR_DSM_CH  -- Full single-channel pipelined ADC
+*   1st stage : 7b SAR + bootstrapped CDAC + COMP_DYN_SF7
+*   Residue   : Source-follower RT_BUF (open-loop, 0.7 mW)
+*   2nd stage : 2nd-order CT incremental DSM (6.5b, 300 MS/s)
+*   Gain error: eliminated by FB_BUF_SF7 replica path (no cal)
+*   Offset cal: foreground on-chip (1st<->2nd stage) via CDAC
+* ---------------------------------------------------------------
+.SUBCKT PIPE_SAR_DSM_CH
++  CKSAMP CKASC CKDSM VDD
++  VINP VINN REFP REFN VCM VBIAS RESET
++  B11 B10 B9 B8 B7 B6 B5 B4 B3 B2 B1 B0 VSS
+* [fixed_v3] NOTE: RESET is a reserved global async-reset port. It is
+*   intentionally left unconnected inside the channel (the DFF_SR_N7 cell
+*   has no reset pin). Pinout is preserved for top-level compatibility;
+*   wire to a reset-capable FF variant if power-on reset is required.
+XI_bsp   CKSAMP VDD VINP net_sp VSS / Bootstrap_SW_SF7
+XI_bsn   CKSAMP VDD VINN net_sn VSS / Bootstrap_SW_SF7
+XI_cdac  net_b6 net_b5 net_b4 net_b3 net_b2 net_b1 net_b0
++  REFN REFP CKSAMP VDD net_sp net_sn net_rdp net_rdn VSS / CDAC_7b_SF7
+XI_comp  CKASC VDD net_rdp net_rdn net_cp net_cn VSS / COMP_DYN_SF7
+XI_asc   CKSAMP VDD net_asc net_eoc1 net_eoc0 net_gsel VSS / ASC_CLK_GEN_SF7
+XI_sar   net_asc net_cp net_cn VDD
++  net_b6 net_b5 net_b4 net_b3 net_b2 net_b1 net_b0 net_eoc VSS / SAR_LOGIC_7b
+XI_rtbuf VDD net_rdp net_rdn net_resp net_resn VBIAS VSS / RT_BUF_SF7
+XI_dsm   CKDSM VDD net_resp net_resn REFP REFN VCM VBIAS
++  B5 B4 B3 B2 B1 B0 VSS / CT_DSM_CH_SF7
+XI_rb11  CKSAMP net_b6 VDD B11 net_rb11b VSS / DFF_SR_N7
+XI_rb10  CKSAMP net_b5 VDD B10 net_rb10b VSS / DFF_SR_N7
+XI_rb9   CKSAMP net_b4 VDD B9  net_rb9b  VSS / DFF_SR_N7
+XI_rb8   CKSAMP net_b3 VDD B8  net_rb8b  VSS / DFF_SR_N7
+XI_rb7   CKSAMP net_b2 VDD B7  net_rb7b  VSS / DFF_SR_N7
+XI_rb6   CKSAMP net_b1 VDD B6  net_rb6b  VSS / DFF_SR_N7
+.ENDS
+
+* ---------------------------------------------------------------
+* PIPE_SAR_DSM_ADC_12b  -- TOP-LEVEL (2x-interleaved)
+*   CH0 (0-deg) + CH1 (180-deg) -> 600 MS/s effective rate
+*   Timing skew-free: 2nd stage samples residue, not input VIN
+*   Only inter-channel offset calibration required (no gain cal)
+*   Off-chip offset calibration performed between CH0 and CH1
+*
+*   [fixed_v2 / Instruction-2]  Output MUX phase-split fix:
+*   Problem : XI_mux[11:0] all controlled by CKSAMP_CH0, so CH1
+*             data was perpetually blocked or incorrectly merged.
+*   Fix     : XI_phase_ctrl generates CK_OUT_MUX (50% duty cycle,
+*             600 MS/s) from CKSAMP_CH0 XOR CKSAMP_CH1.
+*             All NAND MUX gates are now controlled by CK_OUT_MUX
+*             so CH0 and CH1 outputs alternate every half-period.
+* ---------------------------------------------------------------
+.SUBCKT PIPE_SAR_DSM_ADC_12b
++  CKSAMP_CH0 CKSAMP_CH1
++  VINP VINN REFP REFN VCM
++  VDD VSS
++  B11 B10 B9 B8 B7 B6 B5 B4 B3 B2 B1 B0 RESET
+MM_bias_src  net_vbias net_vbias VDD VDD P_SF7 W=252n L=14n M=6
+II_bias_ref  net_vbias VSS DC 875u
+XI_asc_ref   VDD CKSAMP_CH0 net_asc_ref VSS / INV_X4
+XI_dsm_clk0  VDD CKSAMP_CH0 CKDSM_CH0  VSS / INV_X4
+XI_dsm_clk1  VDD CKSAMP_CH1 CKDSM_CH1  VSS / INV_X4
+XI_phase_ctrl CKSAMP_CH0 CKSAMP_CH1 VDD CK_OUT_MUX VSS / PHASE_SPLIT_CTRL
+XI_ch0
++  CKSAMP_CH0 net_asc_ref CKDSM_CH0 VDD
++  VINP VINN REFP REFN VCM net_vbias RESET
++  net_b11_0 net_b10_0 net_b9_0 net_b8_0 net_b7_0 net_b6_0
++  net_b5_0  net_b4_0  net_b3_0 net_b2_0 net_b1_0 net_b0_0 VSS / PIPE_SAR_DSM_CH
+XI_ch1
++  CKSAMP_CH1 net_asc_ref CKDSM_CH1 VDD
++  VINP VINN REFP REFN VCM net_vbias RESET
++  net_b11_1 net_b10_1 net_b9_1 net_b8_1 net_b7_1 net_b6_1
++  net_b5_1  net_b4_1  net_b3_1 net_b2_1 net_b1_1 net_b0_1 VSS / PIPE_SAR_DSM_CH
+XI_mux11 VDD CK_OUT_MUX net_b11_0 net_b11_1 B11 VSS / MUX2
+XI_mux10 VDD CK_OUT_MUX net_b10_0 net_b10_1 B10 VSS / MUX2
+XI_mux9  VDD CK_OUT_MUX net_b9_0  net_b9_1  B9  VSS / MUX2
+XI_mux8  VDD CK_OUT_MUX net_b8_0  net_b8_1  B8  VSS / MUX2
+XI_mux7  VDD CK_OUT_MUX net_b7_0  net_b7_1  B7  VSS / MUX2
+XI_mux6  VDD CK_OUT_MUX net_b6_0  net_b6_1  B6  VSS / MUX2
+XI_mux5  VDD CK_OUT_MUX net_b5_0  net_b5_1  B5  VSS / MUX2
+XI_mux4  VDD CK_OUT_MUX net_b4_0  net_b4_1  B4  VSS / MUX2
+XI_mux3  VDD CK_OUT_MUX net_b3_0  net_b3_1  B3  VSS / MUX2
+XI_mux2  VDD CK_OUT_MUX net_b2_0  net_b2_1  B2  VSS / MUX2
+XI_mux1  VDD CK_OUT_MUX net_b1_0  net_b1_1  B1  VSS / MUX2
+XI_mux0  VDD CK_OUT_MUX net_b0_0  net_b0_1  B0  VSS / MUX2
+.ENDS
+
+* ============================================================
+* SEM Failure Rules  (Simulation / Electrical Mismatch Diagnostics)
+* ============================================================
+*
+* F1 [Gain]        : If DSM SNDR degrades across temperature, check
+*                    RT_BUF_SF7 source-follower Asf (target: > 0.995).
+*                    Verify Source-tied Bulk on MM_sfp / MM_sfn.
+*
+* F2 [Clk_Skew]   : If SFDR < 71 dB at 600 MS/s, measure inter-channel
+*                    timing skew (target: < 1 ps rms).
+*
+* F3 [Comp_Meta]   : If bit-error bursts appear, increase COMP_DYN_SF7
+*                    regeneration time margin.
+*
+* F4 [CDAC_Settle] : If SAR INL > 0.5 LSB, verify CDAC settling within
+*                    CKASC period (7 cycles).
+*
+* F5 [FB_Match]    : If gain error residual appears after trim, check
+*                    layout proximity of RT_BUF_SF7 vs FB_BUF_SF7.
+*
+* F6 [DFF_Hold]    : If random metastability in ASC shift register, check
+*                    DFF_SR_N7 master latch keeper loop (net_mb_fb path).
+*
+* [fixed_v2 / Instruction-4]  New SEM rules added:
+*
+* F7 [Interleaving]: If SFDR degrades in 600 MS/s mode (measured SFDR
+*                    71.1 dB @ 600 MS/s vs 79.4 dB @ 300 MS/s), inspect
+*                    the output MUX switching timing and verify:
+*                    (a) CK_OUT_MUX duty cycle = 50% ± 1% across PVT.
+*                    (b) Phase symmetry between CKSAMP_CH0 and CKSAMP_CH1:
+*                        |t_CH0 - t_CH1| < 2 ps (skew budget).
+*                    (c) PHASE_SPLIT_CTRL NOR gate output glitch-free;
+*                        add drive-strength buffer if fanout > 12.
+*                    Trigger condition: SFDR drop > 3 dB vs 300 MS/s mode.
+*
+* F8 [MUX_Glitch]  : If glitches appear on digital output waveforms B[11:0]:
+*                    (a) Insert a retiming delay chain (2-4 INV stages) at
+*                        CK_OUT_MUX before XI_mux[11:0] gate inputs.
+*                    (b) Add output re-registers (DFF_SR_N7) on B[11:0]
+*                        clocked by a clean low-jitter version of CK_OUT_MUX
+*                        to absorb combinational glitch from NAND MUX.
+*                    (c) Confirm that the data-valid window of net_b*_0 and
+*                        net_b*_1 meets setup/hold margin vs CK_OUT_MUX edge.
+*                    Trigger condition: eye-diagram closure or transitions
+*                    on B[n] more than once per CK_OUT_MUX period.
+*
+* ============================================================
+* END OF FILE  (schematic view)
+* ============================================================

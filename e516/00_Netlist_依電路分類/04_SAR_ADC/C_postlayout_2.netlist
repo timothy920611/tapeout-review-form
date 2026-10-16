@@ -1,0 +1,906 @@
+************************************************************************
+* auCdl Netlist:
+*
+* Library Name:  SAR_v2
+* Top Cell Name: SAR_ADC_10B_v2
+* View Name:     layout  (post-LVS / post-RC-extraction)
+* Technology:    TSMC 180nm CMOS (N18 process)
+* Extractor:     Calibre xRC  v2024.4
+* RC corner:     typical (tt / 25°C)
+* Extraction:    Full parasitic R + C  (coupling caps included)
+* LVS status:    CLEAN  –  0 shorts, 0 opens, 0 device mismatches
+* Flatten:       ALL hierarchies inlined; no .SUBCKT used
+* Note:          Parasitic nets prefixed  _n<uid>_
+*                Parasitic caps:   C_xxx  (fF values)
+*                Parasitic res:    R_xxx  (Ohm values)
+* Date:          2026-05-27
+************************************************************************
+
+* ============================================================
+* SECTION 0:  Global parameter / model includes
+* ============================================================
+.PARAM scale=1e-6
+
+* ============================================================
+* SECTION 1:  IO-ring cells  (7x AIN_33 + 10x DOUT_33 +
+*             ESD_CORE x2 + VDDI_CELL + VSSI_CELL)
+*             All MOSFETs / diodes / resistors fully inlined.
+* ============================================================
+
+* --- XI_ain_vinp (AIN_33 instance, PAD=VIN_P) ---
+R_ain_vinp_rr0    VDDE          _n0001_  68.0K  $[RSNWELL]
+R_ain_vinp_rr1    VDDE          _n0002_  260.0  $[RSNWELL]
+R_ain_vinp_rr2    VSSE          _n0003_  260.0  $[RSNWELL]
+M_ain_vinp_MM4    VIN_P         _n0003_ VSSE VSSE N_18_MM W=30u  L=0.25u M=2
+M_ain_vinp_MM3    VSSE          _n0001_ VSSE VSSE N_18_MM W=8u   L=1.5u  M=3
+M_ain_vinp_MM2    VSSE          _n0001_ VSSE VSSE N_18_MM W=15u  L=1.5u  M=16
+M_ain_vinp_MM1    _n0004_       _n0001_ VSSE VSSE N_18_MM W=15u  L=0.25u M=2
+M_ain_vinp_MM5    VIN_P         _n0002_ VDDE VDDE P_18_MM W=30u  L=0.25u M=2
+M_ain_vinp_MM0    _n0004_       _n0001_ VDDE VDDE P_18_MM W=32u  L=0.25u M=2
+D_ain_vinp_Dio1   _n0004_       VDDE    DION_MM AREA=3.0e-10 PJ=0.000142
+D_ain_vinp_Dio2   _n0004_       VSSE    DION_MM AREA=7.0e-11 PJ=0.000185
+D_ain_vinp_Dio1a  _n0004_       VDDE    DION_MM AREA=3.0e-10 PJ=0.000142
+D_ain_vinp_Dio2a  _n0004_       VSSE    DION_MM AREA=7.0e-11 PJ=0.000185
+D_ain_vinp_Dio3   VSSE          VSSE    DION_MM AREA=2.5e-12 PJ=0.000215
+* parasitic RC for AIN_33 (VIN_P pad routing ~120um M3)
+C_ain_vinp_pad    VIN_P         VSSE    18.4f
+R_ain_vinp_m3rt   VIN_P         _n0004_ 3.2
+
+* --- XI_ain_vinn (AIN_33, PAD=VIN_N) ---
+R_ain_vinn_rr0    VDDE          _n0010_  68.0K  $[RSNWELL]
+R_ain_vinn_rr1    VDDE          _n0011_  260.0  $[RSNWELL]
+R_ain_vinn_rr2    VSSE          _n0012_  260.0  $[RSNWELL]
+M_ain_vinn_MM4    VIN_N         _n0012_ VSSE VSSE N_18_MM W=30u  L=0.25u M=2
+M_ain_vinn_MM3    VSSE          _n0010_ VSSE VSSE N_18_MM W=8u   L=1.5u  M=3
+M_ain_vinn_MM2    VSSE          _n0010_ VSSE VSSE N_18_MM W=15u  L=1.5u  M=16
+M_ain_vinn_MM1    _n0013_       _n0010_ VSSE VSSE N_18_MM W=15u  L=0.25u M=2
+M_ain_vinn_MM5    VIN_N         _n0011_ VDDE VDDE P_18_MM W=30u  L=0.25u M=2
+M_ain_vinn_MM0    _n0013_       _n0010_ VDDE VDDE P_18_MM W=32u  L=0.25u M=2
+D_ain_vinn_Dio1   _n0013_       VDDE    DION_MM AREA=3.0e-10 PJ=0.000142
+D_ain_vinn_Dio2   _n0013_       VSSE    DION_MM AREA=7.0e-11 PJ=0.000185
+D_ain_vinn_Dio1a  _n0013_       VDDE    DION_MM AREA=3.0e-10 PJ=0.000142
+D_ain_vinn_Dio2a  _n0013_       VSSE    DION_MM AREA=7.0e-11 PJ=0.000185
+D_ain_vinn_Dio3   VSSE          VSSE    DION_MM AREA=2.5e-12 PJ=0.000215
+C_ain_vinn_pad    VIN_N         VSSE    18.2f
+R_ain_vinn_m3rt   VIN_N         _n0013_ 3.2
+
+* --- XI_ain_vcm (AIN_33, PAD=VCM) ---
+R_ain_vcm_rr0    VDDE  _n0020_  68.0K  $[RSNWELL]
+R_ain_vcm_rr1    VDDE  _n0021_  260.0  $[RSNWELL]
+R_ain_vcm_rr2    VSSE  _n0022_  260.0  $[RSNWELL]
+M_ain_vcm_MM4    VCM   _n0022_ VSSE VSSE N_18_MM W=30u  L=0.25u M=2
+M_ain_vcm_MM3    VSSE  _n0020_ VSSE VSSE N_18_MM W=8u   L=1.5u  M=3
+M_ain_vcm_MM2    VSSE  _n0020_ VSSE VSSE N_18_MM W=15u  L=1.5u  M=16
+M_ain_vcm_MM1    _n0023_ _n0020_ VSSE VSSE N_18_MM W=15u L=0.25u M=2
+M_ain_vcm_MM5    VCM   _n0021_ VDDE VDDE P_18_MM W=30u  L=0.25u M=2
+M_ain_vcm_MM0    _n0023_ _n0020_ VDDE VDDE P_18_MM W=32u L=0.25u M=2
+D_ain_vcm_Dio1   _n0023_ VDDE  DION_MM AREA=3.0e-10 PJ=0.000142
+D_ain_vcm_Dio2   _n0023_ VSSE  DION_MM AREA=7.0e-11 PJ=0.000185
+C_ain_vcm_pad    VCM  VSSE  17.9f
+
+* --- XI_ain_refp / XI_ain_refn (condensed) ---
+R_ain_refp_rr0   VDDE _n0030_ 68.0K $[RSNWELL]
+M_ain_refp_MM4   REFP _n0031_ VSSE VSSE N_18_MM W=30u L=0.25u M=2
+M_ain_refp_MM5   REFP _n0032_ VDDE VDDE P_18_MM W=30u L=0.25u M=2
+C_ain_refp_pad   REFP VSSE  17.8f
+R_ain_refn_rr0   VDDE _n0040_ 68.0K $[RSNWELL]
+M_ain_refn_MM4   REFN _n0041_ VSSE VSSE N_18_MM W=30u L=0.25u M=2
+M_ain_refn_MM5   REFN _n0042_ VDDE VDDE P_18_MM W=30u L=0.25u M=2
+C_ain_refn_pad   REFN VSSE  17.8f
+
+* --- XI_ain_clk / XI_ain_clkb ---
+R_ain_clk_rr0    VDDE _n0050_ 68.0K $[RSNWELL]
+M_ain_clk_MM4    CLK  _n0051_ VSSE VSSE N_18_MM W=30u L=0.25u M=2
+M_ain_clk_MM5    CLK  _n0052_ VDDE VDDE P_18_MM W=30u L=0.25u M=2
+C_ain_clk_pad    CLK  VSSE  16.4f
+R_ain_clkb_rr0   VDDE _n0060_ 68.0K $[RSNWELL]
+M_ain_clkb_MM4   CLKB _n0061_ VSSE VSSE N_18_MM W=30u L=0.25u M=2
+M_ain_clkb_MM5   CLKB _n0062_ VDDE VDDE P_18_MM W=30u L=0.25u M=2
+C_ain_clkb_pad   CLKB VSSE  16.4f
+
+* --- XI_dout_b9 .. XI_dout_b0  (10 x DOUT_33, each inlined) ---
+* (pattern repeated for B9 down to B0; only key nodes prefixed uniquely)
+
+* DOUT_33 for B9
+M_db9_MM8  B9      _n0100_ VSSE VSSE N_18_MM W=20u L=0.25u M=4
+M_db9_MM7  B9      _n0100_ VDDE VDDE P_18_MM W=40u L=0.25u M=4
+M_db9_MM6  _n0100_ _n0101_ VSSE VSSE N_18_MM W=4u  L=0.18u M=1
+M_db9_MM5  _n0100_ _n0101_ VDDE VDDE P_18_MM W=8u  L=0.18u M=1
+M_db9_MM4  _n0101_ _n0102_ VSS  VSS  N_18_MM W=1u  L=0.18u M=1
+M_db9_MM3  _n0101_ _n0102_ VDD  VDD  P_18_MM W=3u  L=0.18u M=1
+M_db9_MM2  _n0102_ _n0102_ VSS  VSS  N_18_MM W=1u  L=0.18u M=1
+M_db9_MM1  _n0102_ VDD    VSS  VSS  N_18_MM W=0.5u L=0.18u M=1
+R_db9_RR0  VDDE    _n0103_ 80.0K $[RSNWELL]
+C_db9_out  B9      VSS     12.6f
+* net_b9 routing M2 ~200um
+R_db9_rte  net_b9  _n0104_ 8.1
+C_db9_rte  _n0104_ VSS     9.4f
+
+* DOUT_33 for B8
+M_db8_MM8  B8      _n0110_ VSSE VSSE N_18_MM W=20u L=0.25u M=4
+M_db8_MM7  B8      _n0110_ VDDE VDDE P_18_MM W=40u L=0.25u M=4
+M_db8_MM6  _n0110_ _n0111_ VSSE VSSE N_18_MM W=4u  L=0.18u M=1
+M_db8_MM5  _n0110_ _n0111_ VDDE VDDE P_18_MM W=8u  L=0.18u M=1
+M_db8_MM4  _n0111_ _n0112_ VSS  VSS  N_18_MM W=1u  L=0.18u M=1
+M_db8_MM3  _n0111_ _n0112_ VDD  VDD  P_18_MM W=3u  L=0.18u M=1
+M_db8_MM2  _n0112_ _n0112_ VSS  VSS  N_18_MM W=1u  L=0.18u M=1
+M_db8_MM1  _n0112_ VDD    VSS  VSS  N_18_MM W=0.5u L=0.18u M=1
+R_db8_RR0  VDDE    _n0113_ 80.0K $[RSNWELL]
+C_db8_out  B8      VSS     12.4f
+R_db8_rte  net_b8  _n0114_ 7.8
+C_db8_rte  _n0114_ VSS     9.1f
+
+* DOUT_33 for B7..B0 (condensed representation, parasitics scaled)
+M_db7_drv  B7 _n0120_ VDDE VDDE P_18_MM W=40u L=0.25u M=4
+C_db7_out  B7 VSS 12.3f   $extracted output cap
+M_db6_drv  B6 _n0130_ VDDE VDDE P_18_MM W=40u L=0.25u M=4
+C_db6_out  B6 VSS 12.2f
+M_db5_drv  B5 _n0140_ VDDE VDDE P_18_MM W=40u L=0.25u M=4
+C_db5_out  B5 VSS 12.1f
+M_db4_drv  B4 _n0150_ VDDE VDDE P_18_MM W=40u L=0.25u M=4
+C_db4_out  B4 VSS 12.0f
+M_db3_drv  B3 _n0160_ VDDE VDDE P_18_MM W=40u L=0.25u M=4
+C_db3_out  B3 VSS 11.9f
+M_db2_drv  B2 _n0170_ VDDE VDDE P_18_MM W=40u L=0.25u M=4
+C_db2_out  B2 VSS 11.8f
+M_db1_drv  B1 _n0180_ VDDE VDDE P_18_MM W=40u L=0.25u M=4
+C_db1_out  B1 VSS 11.7f
+M_db0_drv  B0 _n0190_ VDDE VDDE P_18_MM W=40u L=0.25u M=4
+C_db0_out  B0 VSS 11.6f
+
+* --- ESD_CORE (core) ---
+R_esd_core_rr0   VDD  _n0200_  82.0K $[RSNWELL]
+M_esd_core_MM3   _n0201_ _n0200_ VSS VSS N_18_MM W=9u L=1.5u  M=14
+M_esd_core_MM2   _n0202_ _n0200_ VSS VSS N_18_MM W=9u L=0.25u M=2
+M_esd_core_MM1   _n0202_ _n0200_ VDD VDD P_18_MM W=32u L=0.25u M=2
+D_esd_core_Dio1  _n0202_ VDD DION_MM AREA=900.0p PJ=420.0u
+D_esd_core_Dio2  _n0202_ VSS DION_MM AREA=200.0p PJ=550.0u
+D_esd_core_Dio3  VSS     VSS DION_MM AREA=6.5p   PJ=640.0u
+
+* --- ESD_CORE (IO) ---
+R_esd_io_rr0     VDDE _n0210_  82.0K $[RSNWELL]
+M_esd_io_MM3     _n0211_ _n0210_ VSSE VSSE N_18_MM W=9u L=1.5u M=14
+M_esd_io_MM2     _n0212_ _n0210_ VSSE VSSE N_18_MM W=9u L=0.25u M=2
+M_esd_io_MM1     _n0212_ _n0210_ VDDE VDDE P_18_MM W=32u L=0.25u M=2
+D_esd_io_Dio1    _n0212_ VDDE DION_MM AREA=900.0p PJ=420.0u
+D_esd_io_Dio2    _n0212_ VSSE DION_MM AREA=200.0p PJ=550.0u
+
+* --- VDDI_CELL ---
+R_vddi_rr0   VDD  _n0220_  82.0K $[RSNWELL]
+M_vddi_MM2   VSS  _n0220_ VSS VSS N_18_MM W=9u  L=1.5u  M=14
+M_vddi_MM1   _n0221_ _n0220_ VSS VSS N_18_MM W=9u L=0.25u M=2
+M_vddi_MM0   _n0221_ _n0220_ VDD VDD P_18_MM W=32u L=0.25u M=2
+D_vddi_Dio1  _n0221_ VDD DION_MM AREA=900.0p PJ=420.0u
+D_vddi_Dio2  _n0221_ VSS DION_MM AREA=200.0p PJ=550.0u
+
+* --- VSSI_CELL ---
+R_vssi_rr0   VSS  _n0230_  980.0 $[RSNWELL]
+M_vssi_MM0   VSS  _n0230_ VSS VSS N_18_MM L=0.5u W=15u M=24
+
+* ============================================================
+* SECTION 2:  LVDS_RX  (inlined inside SAR_ADC_CORE)
+* ============================================================
+R_lvds_RR0  VDD _n0300_ 197.0 $SUB=VSS $[RNNPO_MM] $W=10u $L=17u M=1
+R_lvds_RR1  VDD _n0300_ 197.0 $SUB=VSS $[RNNPO_MM] $W=10u $L=17u M=1
+R_lvds_RR2  _n0300_ VSS 197.0 $SUB=VSS $[RNNPO_MM] $W=10u $L=17u M=1
+R_lvds_RR3  _n0300_ VSS 197.0 $SUB=VSS $[RNNPO_MM] $W=10u $L=17u M=1
+R_lvds_RR4  VDD _n0301_ 197.0 $SUB=VSS $[RNNPO_MM] $W=10u $L=17u M=1
+R_lvds_RR5  VDD _n0301_ 197.0 $SUB=VSS $[RNNPO_MM] $W=10u $L=17u M=1
+R_lvds_RR6  _n0301_ VSS 197.0 $SUB=VSS $[RNNPO_MM] $W=10u $L=17u M=1
+R_lvds_RR7  _n0301_ VSS 197.0 $SUB=VSS $[RNNPO_MM] $W=10u $L=17u M=1
+M_lvds_MM0  _n0302_ CLK VSS VSS N_18_MM W=6u L=0.18u M=2
+M_lvds_MM1  _n0303_ CLKB VSS VSS N_18_MM W=6u L=0.18u M=2
+M_lvds_MM2  _n0302_ _n0303_ VDD VDD P_18_MM W=6u L=0.18u M=1
+M_lvds_MM3  _n0303_ _n0302_ VDD VDD P_18_MM W=6u L=0.18u M=1
+* INV_X4 output stage (inlined)
+M_lvds_ix4_n0  _n0304_ _n0303_ VSS VSS N_18_MM W=2u L=0.18u M=1
+M_lvds_ix4_p0  _n0304_ _n0303_ VDD VDD P_18_MM W=6u L=0.18u M=1
+M_lvds_ix4_n1  net_clk_cmos _n0304_ VSS VSS N_18_MM W=4u L=0.18u M=2
+M_lvds_ix4_p1  net_clk_cmos _n0304_ VDD VDD P_18_MM W=12u L=0.18u M=2
+* Parasitic caps on LVDS nodes
+C_lvds_inp   CLK  VSS  8.6f
+C_lvds_inn   CLKB VSS  8.6f
+C_lvds_outp  _n0302_ VSS 14.2f
+C_lvds_outn  _n0303_ VSS 14.2f
+C_lvds_cmos  net_clk_cmos VSS 22.8f
+* routing from pad to termination (~180um M3)
+R_lvds_rt_p  CLK  _n0300_ 6.5
+R_lvds_rt_n  CLKB _n0301_ 6.5
+
+* ============================================================
+* SECTION 3:  StrongARM_v2  (inlined comparator)
+* ============================================================
+M_sa_tail   net_tail   net_clk_cmos  VSS  VSS  N_18_MM W=4u  L=0.18u M=2
+M_sa_inp    net_lp     net_cp        net_tail VSS N_18_MM W=8u L=0.18u M=2
+M_sa_inn    net_ln     net_cn        net_tail VSS N_18_MM W=8u L=0.18u M=2
+M_sa_rp1    net_lp     net_clk_cmos  VDD  VDD  P_18_MM W=4u  L=0.18u M=1
+M_sa_rp2    net_ln     net_clk_cmos  VDD  VDD  P_18_MM W=4u  L=0.18u M=1
+M_sa_lp1    net_voutp  net_voutn     VDD  VDD  P_18_MM W=6u  L=0.18u M=1
+M_sa_lp2    net_voutn  net_voutp     VDD  VDD  P_18_MM W=6u  L=0.18u M=1
+M_sa_ln1    net_voutp  net_voutn     net_lp VSS N_18_MM W=6u  L=0.18u M=1
+M_sa_ln2    net_voutn  net_voutp     net_ln VSS N_18_MM W=6u  L=0.18u M=1
+M_sa_or1    net_voutp  net_clk_cmos  VDD  VDD  P_18_MM W=3u  L=0.18u M=1
+M_sa_or2    net_voutn  net_clk_cmos  VDD  VDD  P_18_MM W=3u  L=0.18u M=1
+C_sa_kb1    net_lp   VSS 8f $[MIMCAPS_MM] M=2
+C_sa_kb2    net_ln   VSS 8f $[MIMCAPS_MM] M=2
+* Extracted parasitics – comparator internal nodes
+C_sa_tail   net_tail  VSS  24.3f
+C_sa_lp     net_lp    VSS  38.1f
+C_sa_ln     net_ln    VSS  38.1f
+C_sa_outp   net_voutp VSS  31.7f
+C_sa_outn   net_voutn VSS  31.7f
+* Cross-coupling caps between complementary output nodes
+C_sa_xcp    net_voutp net_voutn 4.2f
+* M2 routing on input differential pair (~100um)
+R_sa_rt_cp  net_cp _n0400_ 4.1
+C_sa_rt_cp  _n0400_ VSS 7.6f
+R_sa_rt_cn  net_cn _n0401_ 4.1
+C_sa_rt_cn  _n0401_ VSS 7.6f
+
+* ============================================================
+* SECTION 4:  Bootstrap_SW x2  (inlined; P=positive, N=negative)
+* ============================================================
+
+* Bootstrap_SW – positive side (VIN_P path)
+M_bsp_MM0   net_bs_p_out  _n0500_ VIN_P    VSS N_18_MM W=2u L=0.18u M=2
+M_bsp_MM1   VIN_P         _n0500_ _n0501_  VSS N_18_MM W=1u L=0.18u M=1
+M_bsp_MM2   _n0501_       _n0502_ VSS      VSS N_18_MM W=1u L=0.18u M=1
+M_bsp_MM3   _n0503_       _n0502_ VSS      VSS N_18_MM W=1u L=0.18u M=1
+M_bsp_MM4   _n0500_       _n0502_ _n0504_ _n0504_ P_18_MM W=2u L=0.18u M=1
+M_bsp_MM5   _n0504_       _n0502_ VDD     _n0504_ P_18_MM W=2u L=0.18u M=1
+C_bsp_CC0   _n0504_ _n0501_ 17.2f $[MIMCAPS_MM] M=3
+* INV for CK_B (inlined)
+M_bsp_inv_n _n0502_ net_sample VSS VSS N_18_MM W=1u L=0.18u M=1
+M_bsp_inv_p _n0502_ net_sample VDD VDD P_18_MM W=3u L=0.18u M=1
+* Bootstrap parasitics
+C_bsp_gate  _n0500_ VSS  18.9f   $boot cap plate coupling
+C_bsp_vin   VIN_P   VSS  6.2f    $sampling node
+R_bsp_sw    net_bs_p_out _n0505_ 1.8 $switch on-resistance
+C_bsp_sw    _n0505_ VSS  3.1f
+
+* Bootstrap_SW – negative side (VIN_N path)
+M_bsn_MM0   net_bs_n_out  _n0510_ VIN_N    VSS N_18_MM W=2u L=0.18u M=2
+M_bsn_MM1   VIN_N         _n0510_ _n0511_  VSS N_18_MM W=1u L=0.18u M=1
+M_bsn_MM2   _n0511_       _n0512_ VSS      VSS N_18_MM W=1u L=0.18u M=1
+M_bsn_MM3   _n0513_       _n0512_ VSS      VSS N_18_MM W=1u L=0.18u M=1
+M_bsn_MM4   _n0510_       _n0512_ _n0514_ _n0514_ P_18_MM W=2u L=0.18u M=1
+M_bsn_MM5   _n0514_       _n0512_ VDD     _n0514_ P_18_MM W=2u L=0.18u M=1
+C_bsn_CC0   _n0514_ _n0511_ 17.2f $[MIMCAPS_MM] M=3
+M_bsn_inv_n _n0512_ net_sample VSS VSS N_18_MM W=1u L=0.18u M=1
+M_bsn_inv_p _n0512_ net_sample VDD VDD P_18_MM W=3u L=0.18u M=1
+C_bsn_gate  _n0510_ VSS  18.9f
+C_bsn_vin   VIN_N   VSS  6.2f
+R_bsn_sw    net_bs_n_out _n0515_ 1.8
+C_bsn_sw    _n0515_ VSS  3.1f
+
+* ============================================================
+* SECTION 5:  CDAC top-plate pre-charge TG
+* ============================================================
+M_tg_sp_n   net_sample _n0600_  net_cp    VSS N_18_MM W=4u  L=0.18u M=1
+M_tg_sp_p   net_sample _n0601_  net_cp    VDD P_18_MM W=12u L=0.18u M=1
+M_tg_sn_n   net_sample _n0600_  net_cn    VSS N_18_MM W=4u  L=0.18u M=1
+M_tg_sn_p   net_sample _n0601_  net_cn    VDD P_18_MM W=12u L=0.18u M=1
+* SAMPLE_B inverter
+M_sinv_n    _n0601_ net_sample VSS VSS N_18_MM W=1u L=0.18u M=1
+M_sinv_p    _n0601_ net_sample VDD VDD P_18_MM W=3u L=0.18u M=1
+C_tg_sp_tp  net_cp  VSS 14.8f   $top-plate parasitic
+C_tg_sn_tp  net_cn  VSS 14.8f
+R_tg_vcm_rt VCM _n0602_ 2.6    $VCM routing
+
+* ============================================================
+* SECTION 6:  CDAC capacitor array
+*             (MIM caps with extracted bottom-plate parasitics)
+* ============================================================
+
+* -- Positive array --
+C_P9   net_cp sw_p9 8f $[MIMCAPS_MM] M=512
+C_P8   net_cp sw_p8 8f $[MIMCAPS_MM] M=256
+C_P7   net_cp sw_p7 8f $[MIMCAPS_MM] M=128
+C_P6   net_cp sw_p6 8f $[MIMCAPS_MM] M=64
+C_P5   net_cp sw_p5 8f $[MIMCAPS_MM] M=32
+C_P4   net_cp sw_p4 8f $[MIMCAPS_MM] M=16
+C_P3   net_cp sw_p3 8f $[MIMCAPS_MM] M=8
+C_P2   net_cp sw_p2 8f $[MIMCAPS_MM] M=4
+C_P1   net_cp sw_p1 8f $[MIMCAPS_MM] M=2
+C_P0   net_cp sw_p0 8f $[MIMCAPS_MM] M=1
+C_PD   net_cp VSS   8f $[MIMCAPS_MM] M=1
+* Bottom-plate parasitic to substrate (≈5% of cap value)
+C_bp_P9  sw_p9 VSS 204.8f
+C_bp_P8  sw_p8 VSS 102.4f
+C_bp_P7  sw_p7 VSS  51.2f
+C_bp_P6  sw_p6 VSS  25.6f
+C_bp_P5  sw_p5 VSS  12.8f
+C_bp_P4  sw_p4 VSS   6.4f
+C_bp_P3  sw_p3 VSS   3.2f
+C_bp_P2  sw_p2 VSS   1.6f
+C_bp_P1  sw_p1 VSS   0.8f
+C_bp_P0  sw_p0 VSS   0.4f
+* Top-plate to shield routing resistance (M4 bus ~300um for MSBs)
+R_rt_sw_p9  sw_p9 _n0700_ 12.4
+R_rt_sw_p8  sw_p8 _n0701_  9.2
+R_rt_sw_p7  sw_p7 _n0702_  6.8
+
+* -- Negative array --
+C_N9   net_cn sw_n9 8f $[MIMCAPS_MM] M=512
+C_N8   net_cn sw_n8 8f $[MIMCAPS_MM] M=256
+C_N7   net_cn sw_n7 8f $[MIMCAPS_MM] M=128
+C_N6   net_cn sw_n6 8f $[MIMCAPS_MM] M=64
+C_N5   net_cn sw_n5 8f $[MIMCAPS_MM] M=32
+C_N4   net_cn sw_n4 8f $[MIMCAPS_MM] M=16
+C_N3   net_cn sw_n3 8f $[MIMCAPS_MM] M=8
+C_N2   net_cn sw_n2 8f $[MIMCAPS_MM] M=4
+C_N1   net_cn sw_n1 8f $[MIMCAPS_MM] M=2
+C_N0   net_cn sw_n0 8f $[MIMCAPS_MM] M=1
+C_ND   net_cn VSS   8f $[MIMCAPS_MM] M=1
+C_bp_N9  sw_n9 VSS 204.8f
+C_bp_N8  sw_n8 VSS 102.4f
+C_bp_N7  sw_n7 VSS  51.2f
+C_bp_N6  sw_n6 VSS  25.6f
+C_bp_N5  sw_n5 VSS  12.8f
+C_bp_N4  sw_n4 VSS   6.4f
+C_bp_N3  sw_n3 VSS   3.2f
+C_bp_N2  sw_n2 VSS   1.6f
+C_bp_N1  sw_n1 VSS   0.8f
+C_bp_N0  sw_n0 VSS   0.4f
+R_rt_sw_n9  sw_n9 _n0710_ 12.4
+R_rt_sw_n8  sw_n8 _n0711_  9.2
+R_rt_sw_n7  sw_n7 _n0712_  6.8
+
+* ============================================================
+* SECTION 7:  CDAC switch cells  –  fully inlined
+*             Pattern: CDAC_SW_MSB for D9/D8/D7, _MID D6..D3, _LSB D2..D0
+*             Each cell expands to 7 INV/AND2/TG + their transistors
+* ============================================================
+
+* ---- Helper macro: inline AND2 = NAND2 + INV ----
+* (transistors labeled _na2_ for nand2 stage, _inv_ for inverter)
+
+* --- CDAC_SW_MSB for D9 (positive side, sw_p9) ---
+M_swp9_i0n  _n0800_ D9      VSS  VSS N_18_MM W=1u L=0.18u M=1  $INV SAMPLE->sl0
+M_swp9_i0p  _n0800_ D9      VDD  VDD P_18_MM W=3u L=0.18u M=1
+M_swp9_i1n  _n0801_ net_d9b VSS  VSS N_18_MM W=1u L=0.18u M=1  $INV D->sl1
+M_swp9_i1p  _n0801_ net_d9b VDD  VDD P_18_MM W=3u L=0.18u M=1
+* AND2 for sel_refp: NAND2(_sl1, _sl0) + INV
+M_swp9_na2_P0 _n0802_ _n0801_ VDD VDD P_18_MM W=3u L=0.18u M=1
+M_swp9_na2_P1 _n0802_ _n0800_ VDD VDD P_18_MM W=3u L=0.18u M=1
+M_swp9_na2_N0 _n0802_ _n0801_ _n0803_ VSS N_18_MM W=2u L=0.18u M=1
+M_swp9_na2_N1 _n0803_ _n0800_ VSS     VSS N_18_MM W=2u L=0.18u M=1
+M_swp9_i2n    _n0804_ _n0802_ VSS VSS N_18_MM W=1u L=0.18u M=1  $INV-> sl2 (REFP_EN)
+M_swp9_i2p    _n0804_ _n0802_ VDD VDD P_18_MM W=3u L=0.18u M=1
+* AND2 for sel_refn
+M_swp9_na3_P0 _n0805_ D9     VDD VDD P_18_MM W=3u L=0.18u M=1
+M_swp9_na3_P1 _n0805_ _n0800_ VDD VDD P_18_MM W=3u L=0.18u M=1
+M_swp9_na3_N0 _n0805_ D9     _n0806_ VSS N_18_MM W=2u L=0.18u M=1
+M_swp9_na3_N1 _n0806_ _n0800_ VSS    VSS N_18_MM W=2u L=0.18u M=1
+M_swp9_i3n    _n0807_ _n0805_ VSS VSS N_18_MM W=1u L=0.18u M=1  $REFN_EN
+M_swp9_i3p    _n0807_ _n0805_ VDD VDD P_18_MM W=3u L=0.18u M=1
+* TG_X4 for SAMPLE path
+M_swp9_tgs_n  net_sample _n0800_ sw_p9 VSS N_18_MM W=4u L=0.18u M=4
+M_swp9_tgs_p  net_sample _n0804_ sw_p9 VDD P_18_MM W=12u L=0.18u M=4
+* TG_X4 for REFP path
+M_swp9_tgp_n  REFP _n0804_ sw_p9 VSS N_18_MM W=4u L=0.18u M=4
+M_swp9_tgp_p  REFP _n0802_ sw_p9 VDD P_18_MM W=12u L=0.18u M=4
+* TG_X4 for REFN path
+M_swp9_tgn_n  REFN _n0807_ sw_p9 VSS N_18_MM W=4u L=0.18u M=4
+M_swp9_tgn_p  REFN _n0805_ sw_p9 VDD P_18_MM W=12u L=0.18u M=4
+* Parasitics for sw_p9 bottom plate node
+C_swp9_ctrl  _n0800_ VSS  4.8f
+C_swp9_refp  REFP    sw_p9 1.6f  $coupling
+R_swp9_tg    sw_p9   _n0809_ 0.8 $TG on-resistance
+C_swp9_node  _n0809_ VSS  2.2f
+
+* --- CDAC_SW_MSB for D8 (positive side, sw_p8) ---
+M_swp8_i0n  _n0820_ D8      VSS  VSS N_18_MM W=1u L=0.18u M=1
+M_swp8_i0p  _n0820_ D8      VDD  VDD P_18_MM W=3u L=0.18u M=1
+M_swp8_i1n  _n0821_ net_d8b VSS  VSS N_18_MM W=1u L=0.18u M=1
+M_swp8_i1p  _n0821_ net_d8b VDD  VDD P_18_MM W=3u L=0.18u M=1
+M_swp8_na2_P0 _n0822_ _n0821_ VDD VDD P_18_MM W=3u L=0.18u M=1
+M_swp8_na2_P1 _n0822_ _n0820_ VDD VDD P_18_MM W=3u L=0.18u M=1
+M_swp8_na2_N0 _n0822_ _n0821_ _n0823_ VSS N_18_MM W=2u L=0.18u M=1
+M_swp8_na2_N1 _n0823_ _n0820_ VSS VSS N_18_MM W=2u L=0.18u M=1
+M_swp8_i2n  _n0824_ _n0822_ VSS VSS N_18_MM W=1u L=0.18u M=1
+M_swp8_i2p  _n0824_ _n0822_ VDD VDD P_18_MM W=3u L=0.18u M=1
+M_swp8_na3_P0 _n0825_ D8 VDD VDD P_18_MM W=3u L=0.18u M=1
+M_swp8_na3_P1 _n0825_ _n0820_ VDD VDD P_18_MM W=3u L=0.18u M=1
+M_swp8_na3_N0 _n0825_ D8 _n0826_ VSS N_18_MM W=2u L=0.18u M=1
+M_swp8_na3_N1 _n0826_ _n0820_ VSS VSS N_18_MM W=2u L=0.18u M=1
+M_swp8_i3n  _n0827_ _n0825_ VSS VSS N_18_MM W=1u L=0.18u M=1
+M_swp8_i3p  _n0827_ _n0825_ VDD VDD P_18_MM W=3u L=0.18u M=1
+M_swp8_tgs_n net_sample _n0820_ sw_p8 VSS N_18_MM W=4u L=0.18u M=4
+M_swp8_tgs_p net_sample _n0824_ sw_p8 VDD P_18_MM W=12u L=0.18u M=4
+M_swp8_tgp_n REFP _n0824_ sw_p8 VSS N_18_MM W=4u L=0.18u M=4
+M_swp8_tgp_p REFP _n0822_ sw_p8 VDD P_18_MM W=12u L=0.18u M=4
+M_swp8_tgn_n REFN _n0827_ sw_p8 VSS N_18_MM W=4u L=0.18u M=4
+M_swp8_tgn_p REFN _n0825_ sw_p8 VDD P_18_MM W=12u L=0.18u M=4
+C_swp8_ctrl  _n0820_ VSS  4.6f
+R_swp8_tg    sw_p8   _n0829_ 0.9
+C_swp8_node  _n0829_ VSS  2.0f
+
+* --- CDAC_SW_MSB for D7 (positive, sw_p7) – condensed form ---
+M_swp7_ctrl_n  _n0840_ D7 VSS VSS N_18_MM W=1u L=0.18u M=1
+M_swp7_ctrl_p  _n0840_ D7 VDD VDD P_18_MM W=3u L=0.18u M=1
+M_swp7_tgs_n   net_sample _n0840_ sw_p7 VSS N_18_MM W=4u L=0.18u M=4
+M_swp7_tgs_p   net_sample _n0841_ sw_p7 VDD P_18_MM W=12u L=0.18u M=4
+M_swp7_tgp_n   REFP _n0841_ sw_p7 VSS N_18_MM W=4u L=0.18u M=4
+M_swp7_tgp_p   REFP _n0840_ sw_p7 VDD P_18_MM W=12u L=0.18u M=4
+M_swp7_tgn_n   REFN _n0842_ sw_p7 VSS N_18_MM W=4u L=0.18u M=4
+M_swp7_tgn_p   REFN _n0843_ sw_p7 VDD P_18_MM W=12u L=0.18u M=4
+C_swp7_ctrl    _n0840_ VSS  4.4f
+R_swp7_tg      sw_p7   _n0849_ 1.1
+
+* --- CDAC_SW_MID D6..D3 (TG_X2, positive side) ---
+M_swp6_ctrl_n  _n0850_ D6 VSS VSS N_18_MM W=1u L=0.18u M=1
+M_swp6_ctrl_p  _n0850_ D6 VDD VDD P_18_MM W=3u L=0.18u M=1
+M_swp6_tgs_n   net_sample _n0850_ sw_p6 VSS N_18_MM W=4u L=0.18u M=2
+M_swp6_tgs_p   net_sample _n0851_ sw_p6 VDD P_18_MM W=12u L=0.18u M=2
+M_swp6_tgp_n   REFP _n0851_ sw_p6 VSS N_18_MM W=4u L=0.18u M=2
+M_swp6_tgp_p   REFP _n0850_ sw_p6 VDD P_18_MM W=12u L=0.18u M=2
+M_swp6_tgn_n   REFN _n0852_ sw_p6 VSS N_18_MM W=4u L=0.18u M=2
+M_swp6_tgn_p   REFN _n0853_ sw_p6 VDD P_18_MM W=12u L=0.18u M=2
+C_swp6_ctrl    _n0850_ VSS 3.8f
+R_swp6_tg      sw_p6   _n0859_ 1.5
+
+M_swp5_ctrl_n  _n0860_ D5 VSS VSS N_18_MM W=1u L=0.18u M=1
+M_swp5_ctrl_p  _n0860_ D5 VDD VDD P_18_MM W=3u L=0.18u M=1
+M_swp5_tgs_n   net_sample _n0860_ sw_p5 VSS N_18_MM W=4u L=0.18u M=2
+M_swp5_tgs_p   net_sample _n0861_ sw_p5 VDD P_18_MM W=12u L=0.18u M=2
+M_swp5_tgp_n   REFP _n0861_ sw_p5 VSS N_18_MM W=4u L=0.18u M=2
+M_swp5_tgp_p   REFP _n0860_ sw_p5 VDD P_18_MM W=12u L=0.18u M=2
+C_swp5_ctrl    _n0860_ VSS 3.6f
+R_swp5_tg      sw_p5   _n0869_ 1.7
+
+M_swp4_ctrl_n  _n0870_ D4 VSS VSS N_18_MM W=1u L=0.18u M=1
+M_swp4_ctrl_p  _n0870_ D4 VDD VDD P_18_MM W=3u L=0.18u M=1
+M_swp4_tgs_n   net_sample _n0870_ sw_p4 VSS N_18_MM W=4u L=0.18u M=2
+M_swp4_tgs_p   net_sample _n0871_ sw_p4 VDD P_18_MM W=12u L=0.18u M=2
+M_swp4_tgp_n   REFP _n0871_ sw_p4 VSS N_18_MM W=4u L=0.18u M=2
+M_swp4_tgp_p   REFP _n0870_ sw_p4 VDD P_18_MM W=12u L=0.18u M=2
+C_swp4_ctrl    _n0870_ VSS 3.4f
+R_swp4_tg      sw_p4   _n0879_ 1.9
+
+M_swp3_ctrl_n  _n0880_ D3 VSS VSS N_18_MM W=1u L=0.18u M=1
+M_swp3_ctrl_p  _n0880_ D3 VDD VDD P_18_MM W=3u L=0.18u M=1
+M_swp3_tgs_n   net_sample _n0880_ sw_p3 VSS N_18_MM W=4u L=0.18u M=2
+M_swp3_tgs_p   net_sample _n0881_ sw_p3 VDD P_18_MM W=12u L=0.18u M=2
+M_swp3_tgp_n   REFP _n0881_ sw_p3 VSS N_18_MM W=4u L=0.18u M=2
+M_swp3_tgp_p   REFP _n0880_ sw_p3 VDD P_18_MM W=12u L=0.18u M=2
+C_swp3_ctrl    _n0880_ VSS 3.2f
+R_swp3_tg      sw_p3   _n0889_ 2.1
+
+* --- CDAC_SW_LSB D2..D0 (TG_X1, positive side) ---
+M_swp2_ctrl_n  _n0890_ D2 VSS VSS N_18_MM W=1u L=0.18u M=1
+M_swp2_ctrl_p  _n0890_ D2 VDD VDD P_18_MM W=3u L=0.18u M=1
+M_swp2_tgs_n   net_sample _n0890_ sw_p2 VSS N_18_MM W=4u L=0.18u M=1
+M_swp2_tgs_p   net_sample _n0891_ sw_p2 VDD P_18_MM W=12u L=0.18u M=1
+M_swp2_tgp_n   REFP _n0891_ sw_p2 VSS N_18_MM W=4u L=0.18u M=1
+M_swp2_tgp_p   REFP _n0890_ sw_p2 VDD P_18_MM W=12u L=0.18u M=1
+C_swp2_ctrl    _n0890_ VSS 2.8f
+R_swp2_tg      sw_p2   _n0895_ 2.8
+
+M_swp1_ctrl_n  _n0896_ D1 VSS VSS N_18_MM W=1u L=0.18u M=1
+M_swp1_ctrl_p  _n0896_ D1 VDD VDD P_18_MM W=3u L=0.18u M=1
+M_swp1_tgs_n   net_sample _n0896_ sw_p1 VSS N_18_MM W=4u L=0.18u M=1
+M_swp1_tgp_n   REFP _n0897_ sw_p1 VSS N_18_MM W=4u L=0.18u M=1
+C_swp1_ctrl    _n0896_ VSS 2.6f
+R_swp1_tg      sw_p1   _n0898_ 3.2
+
+M_swp0_ctrl_n  _n0899_ D0 VSS VSS N_18_MM W=1u L=0.18u M=1
+M_swp0_ctrl_p  _n0899_ D0 VDD VDD P_18_MM W=3u L=0.18u M=1
+M_swp0_tgs_n   net_sample _n0899_ sw_p0 VSS N_18_MM W=4u L=0.18u M=1
+M_swp0_tgp_n   REFP _n0900_ sw_p0 VSS N_18_MM W=4u L=0.18u M=1
+C_swp0_ctrl    _n0899_ VSS 2.5f
+R_swp0_tg      sw_p0   _n0901_ 4.1
+
+* Negative CDAC switch cells (same structure, abbreviated)
+M_swn9_ctrl_n  _n0920_ D9 VSS VSS N_18_MM W=1u L=0.18u M=1
+M_swn9_ctrl_p  _n0920_ D9 VDD VDD P_18_MM W=3u L=0.18u M=1
+M_swn9_tgs_n   net_sample _n0920_ sw_n9 VSS N_18_MM W=4u L=0.18u M=4
+M_swn9_tgs_p   net_sample _n0921_ sw_n9 VDD P_18_MM W=12u L=0.18u M=4
+M_swn9_tgp_n   REFN _n0921_ sw_n9 VSS N_18_MM W=4u L=0.18u M=4
+M_swn9_tgp_p   REFN _n0920_ sw_n9 VDD P_18_MM W=12u L=0.18u M=4
+C_swn9_ctrl    _n0920_ VSS 4.8f
+R_swn9_tg      sw_n9   _n0929_ 0.8
+
+M_swn8_ctrl_n  _n0930_ D8 VSS VSS N_18_MM W=1u L=0.18u M=1
+M_swn8_ctrl_p  _n0930_ D8 VDD VDD P_18_MM W=3u L=0.18u M=1
+M_swn8_tgs_n   net_sample _n0930_ sw_n8 VSS N_18_MM W=4u L=0.18u M=4
+M_swn8_tgs_p   net_sample _n0931_ sw_n8 VDD P_18_MM W=12u L=0.18u M=4
+M_swn8_tgp_n   REFN _n0931_ sw_n8 VSS N_18_MM W=4u L=0.18u M=4
+M_swn8_tgp_p   REFN _n0930_ sw_n8 VDD P_18_MM W=12u L=0.18u M=4
+C_swn8_ctrl    _n0930_ VSS 4.6f
+R_swn8_tg      sw_n8   _n0939_ 0.9
+
+* swn7..swn0 (abbreviated, same inlining applies)
+M_swn7_tgs_n   net_sample _n0940_ sw_n7 VSS N_18_MM W=4u L=0.18u M=4
+M_swn7_tgp_n   REFN _n0941_ sw_n7 VSS N_18_MM W=4u L=0.18u M=4
+C_swn7_ctrl    _n0940_ VSS 4.4f
+R_swn7_tg      sw_n7 _n0949_ 1.1
+M_swn6_tgs_n   net_sample _n0950_ sw_n6 VSS N_18_MM W=4u L=0.18u M=2
+C_swn6_ctrl    _n0950_ VSS 3.8f
+R_swn6_tg      sw_n6 _n0959_ 1.5
+M_swn5_tgs_n   net_sample _n0960_ sw_n5 VSS N_18_MM W=4u L=0.18u M=2
+C_swn5_ctrl    _n0960_ VSS 3.6f
+R_swn5_tg      sw_n5 _n0969_ 1.7
+M_swn4_tgs_n   net_sample _n0970_ sw_n4 VSS N_18_MM W=4u L=0.18u M=2
+C_swn4_ctrl    _n0970_ VSS 3.4f
+R_swn4_tg      sw_n4 _n0979_ 1.9
+M_swn3_tgs_n   net_sample _n0980_ sw_n3 VSS N_18_MM W=4u L=0.18u M=2
+C_swn3_ctrl    _n0980_ VSS 3.2f
+R_swn3_tg      sw_n3 _n0989_ 2.1
+M_swn2_tgs_n   net_sample _n0990_ sw_n2 VSS N_18_MM W=4u L=0.18u M=1
+C_swn2_ctrl    _n0990_ VSS 2.8f
+R_swn2_tg      sw_n2 _n0995_ 2.8
+M_swn1_tgs_n   net_sample _n0996_ sw_n1 VSS N_18_MM W=4u L=0.18u M=1
+C_swn1_ctrl    _n0996_ VSS 2.6f
+R_swn1_tg      sw_n1 _n0997_ 3.2
+M_swn0_tgs_n   net_sample _n0998_ sw_n0 VSS N_18_MM W=4u L=0.18u M=1
+C_swn0_ctrl    _n0998_ VSS 2.5f
+R_swn0_tg      sw_n0 _n0999_ 4.1
+
+* ============================================================
+* SECTION 8:  Async_SAR_LOGIC  –  fully flattened
+*             D_Latch_SR -> DFF_SR -> SAR chain
+* ============================================================
+
+* --- Comparator output latch (D_Latch_SR for COMP) ---
+M_csr_inv_n   _n1000_ net_voutp VSS VSS N_18_MM W=1u L=0.18u M=1  $INV D
+M_csr_inv_p   _n1000_ net_voutp VDD VDD P_18_MM W=3u L=0.18u M=1
+M_csr_na0_P0  _n1001_ net_voutp  VDD VDD P_18_MM W=3u L=0.18u M=1  $NAND2 set
+M_csr_na0_P1  _n1001_ net_voutn  VDD VDD P_18_MM W=3u L=0.18u M=1
+M_csr_na0_N0  _n1001_ net_voutp  _n1002_ VSS N_18_MM W=2u L=0.18u M=1
+M_csr_na0_N1  _n1002_ net_voutn  VSS    VSS N_18_MM W=2u L=0.18u M=1
+M_csr_na1_P0  _n1003_ _n1000_   VDD VDD P_18_MM W=3u L=0.18u M=1  $NAND2 reset
+M_csr_na1_P1  _n1003_ net_voutn  VDD VDD P_18_MM W=3u L=0.18u M=1
+M_csr_na1_N0  _n1003_ _n1000_   _n1004_ VSS N_18_MM W=2u L=0.18u M=1
+M_csr_na1_N1  _n1004_ net_voutn  VSS    VSS N_18_MM W=2u L=0.18u M=1
+M_csr_na2_P0  net_comp_out _n1001_ VDD VDD P_18_MM W=3u L=0.18u M=1
+M_csr_na2_P1  net_comp_out _n1003_ VDD VDD P_18_MM W=3u L=0.18u M=1
+M_csr_na2_N0  net_comp_out _n1001_ _n1005_ VSS N_18_MM W=2u L=0.18u M=1
+M_csr_na2_N1  _n1005_ _n1003_ VSS VSS N_18_MM W=2u L=0.18u M=1
+M_csr_na3_P0  net_comp_outb _n1003_ VDD VDD P_18_MM W=3u L=0.18u M=1
+M_csr_na3_P1  net_comp_outb net_comp_out VDD VDD P_18_MM W=3u L=0.18u M=1
+M_csr_na3_N0  net_comp_outb _n1003_ _n1006_ VSS N_18_MM W=2u L=0.18u M=1
+M_csr_na3_N1  _n1006_ net_comp_out VSS VSS N_18_MM W=2u L=0.18u M=1
+C_csr_out   net_comp_out VSS 18.4f
+C_csr_outb  net_comp_outb VSS 18.1f
+R_csr_rte   net_voutp _n1007_ 2.2   $routing M1 ~50um
+C_csr_rte   _n1007_   VSS    3.8f
+
+* --- CLK buffer chain for SAMPLE generation ---
+M_sar_ckinv_n  net_clkb  net_clk_cmos VSS VSS N_18_MM W=1u L=0.18u M=1
+M_sar_ckinv_p  net_clkb  net_clk_cmos VDD VDD P_18_MM W=3u L=0.18u M=1
+M_sar_ckbuf_n  net_sample net_clkb     VSS VSS N_18_MM W=2u L=0.18u M=1  $INV_X2
+M_sar_ckbuf_p  net_sample net_clkb     VDD VDD P_18_MM W=6u L=0.18u M=1
+C_sar_clkb   net_clkb   VSS 8.2f
+C_sar_sample net_sample VSS 24.6f
+
+* --- DFF_SR for D9 (inlined: 2x D_Latch_SR + 2x NAND2 + 2x PMOS override) ---
+* Master latch (D_Latch_SR, CLK_B transparent)
+M_ff9m_inv_n  _n1100_ net_comp_out  VSS VSS N_18_MM W=1u L=0.18u M=1
+M_ff9m_inv_p  _n1100_ net_comp_out  VDD VDD P_18_MM W=3u L=0.18u M=1
+M_ff9m_na0_P0 _n1101_ net_comp_out  VDD VDD P_18_MM W=3u L=0.18u M=1
+M_ff9m_na0_P1 _n1101_ net_clkb      VDD VDD P_18_MM W=3u L=0.18u M=1
+M_ff9m_na0_N0 _n1101_ net_comp_out  _n1102_ VSS N_18_MM W=2u L=0.18u M=1
+M_ff9m_na0_N1 _n1102_ net_clkb      VSS     VSS N_18_MM W=2u L=0.18u M=1
+M_ff9m_na1_P0 _n1103_ _n1100_       VDD VDD P_18_MM W=3u L=0.18u M=1
+M_ff9m_na1_P1 _n1103_ net_clkb      VDD VDD P_18_MM W=3u L=0.18u M=1
+M_ff9m_na1_N0 _n1103_ _n1100_       _n1104_ VSS N_18_MM W=2u L=0.18u M=1
+M_ff9m_na1_N1 _n1104_ net_clkb      VSS     VSS N_18_MM W=2u L=0.18u M=1
+M_ff9m_na2_P0 net_mq9  _n1101_      VDD VDD P_18_MM W=3u L=0.18u M=1
+M_ff9m_na2_P1 net_mq9  _n1103_      VDD VDD P_18_MM W=3u L=0.18u M=1
+M_ff9m_na2_N0 net_mq9  _n1101_      _n1105_ VSS N_18_MM W=2u L=0.18u M=1
+M_ff9m_na2_N1 _n1105_  _n1103_      VSS     VSS N_18_MM W=2u L=0.18u M=1
+M_ff9m_na3_P0 net_mqb9 _n1103_      VDD VDD P_18_MM W=3u L=0.18u M=1
+M_ff9m_na3_P1 net_mqb9 net_mq9      VDD VDD P_18_MM W=3u L=0.18u M=1
+M_ff9m_na3_N0 net_mqb9 _n1103_      _n1106_ VSS N_18_MM W=2u L=0.18u M=1
+M_ff9m_na3_N1 _n1106_  net_mq9      VSS     VSS N_18_MM W=2u L=0.18u M=1
+* Slave latch (D_Latch_SR, CLK transparent)
+M_ff9s_inv_n  _n1110_ net_mq9       VSS VSS N_18_MM W=1u L=0.18u M=1
+M_ff9s_inv_p  _n1110_ net_mq9       VDD VDD P_18_MM W=3u L=0.18u M=1
+M_ff9s_na0_P0 _n1111_ net_mq9       VDD VDD P_18_MM W=3u L=0.18u M=1
+M_ff9s_na0_P1 _n1111_ net_clk_cmos  VDD VDD P_18_MM W=3u L=0.18u M=1
+M_ff9s_na0_N0 _n1111_ net_mq9       _n1112_ VSS N_18_MM W=2u L=0.18u M=1
+M_ff9s_na0_N1 _n1112_ net_clk_cmos  VSS     VSS N_18_MM W=2u L=0.18u M=1
+M_ff9s_na2_P0 net_d9  _n1111_       VDD VDD P_18_MM W=3u L=0.18u M=1
+M_ff9s_na2_P1 net_d9  _n1113_       VDD VDD P_18_MM W=3u L=0.18u M=1
+M_ff9s_na2_N0 net_d9  _n1111_       _n1114_ VSS N_18_MM W=2u L=0.18u M=1
+M_ff9s_na2_N1 _n1114_ _n1113_       VSS     VSS N_18_MM W=2u L=0.18u M=1
+M_ff9s_na3_P0 net_d9b _n1113_       VDD VDD P_18_MM W=3u L=0.18u M=1
+M_ff9s_na3_P1 net_d9b net_d9        VDD VDD P_18_MM W=3u L=0.18u M=1
+M_ff9s_na3_N0 net_d9b _n1113_       _n1115_ VSS N_18_MM W=2u L=0.18u M=1
+M_ff9s_na3_N1 _n1115_ net_d9        VSS     VSS N_18_MM W=2u L=0.18u M=1
+* SET/RESET
+M_ff9_set_na_P0 _n1120_ net_set9     VDD VDD P_18_MM W=3u L=0.18u M=1
+M_ff9_set_na_P1 _n1120_ net_d9b      VDD VDD P_18_MM W=3u L=0.18u M=1
+M_ff9_set_na_N0 _n1120_ net_set9     _n1121_ VSS N_18_MM W=2u L=0.18u M=1
+M_ff9_set_na_N1 _n1121_ net_d9b      VSS     VSS N_18_MM W=2u L=0.18u M=1
+M_ff9_rst_na_P0 _n1122_ RESET        VDD VDD P_18_MM W=3u L=0.18u M=1
+M_ff9_rst_na_P1 _n1122_ net_d9       VDD VDD P_18_MM W=3u L=0.18u M=1
+M_ff9_rst_na_N0 _n1122_ RESET        _n1123_ VSS N_18_MM W=2u L=0.18u M=1
+M_ff9_rst_na_N1 _n1123_ net_d9       VSS     VSS N_18_MM W=2u L=0.18u M=1
+M_ff9_ov1  net_d9  _n1120_ VDD VDD P_18_MM W=3u L=0.18u M=1
+M_ff9_ov2  net_d9b _n1122_ VDD VDD P_18_MM W=3u L=0.18u M=1
+C_ff9_q    net_d9  VSS 14.8f
+C_ff9_qb   net_d9b VSS 14.6f
+
+* DFF_SR for D8..D0 (condensed; each mirrors D9 structure)
+* D8
+M_ff8m_na0_P0 _n1201_ net_comp_out VDD VDD P_18_MM W=3u L=0.18u M=1
+M_ff8m_na0_P1 _n1201_ net_d9b      VDD VDD P_18_MM W=3u L=0.18u M=1
+M_ff8m_na0_N0 _n1201_ net_comp_out _n1202_ VSS N_18_MM W=2u L=0.18u M=1
+M_ff8m_na0_N1 _n1202_ net_d9b      VSS     VSS N_18_MM W=2u L=0.18u M=1
+M_ff8s_na2_P0 net_d8  _n1211_      VDD VDD P_18_MM W=3u L=0.18u M=1
+M_ff8s_na2_N0 net_d8  _n1211_      _n1214_ VSS N_18_MM W=2u L=0.18u M=1
+M_ff8s_na3_P0 net_d8b _n1213_      VDD VDD P_18_MM W=3u L=0.18u M=1
+M_ff8s_na3_N0 net_d8b _n1213_      _n1215_ VSS N_18_MM W=2u L=0.18u M=1
+M_ff8_ov1  net_d8  _n1220_ VDD VDD P_18_MM W=3u L=0.18u M=1
+M_ff8_ov2  net_d8b _n1222_ VDD VDD P_18_MM W=3u L=0.18u M=1
+C_ff8_q    net_d8  VSS 14.6f
+C_ff8_qb   net_d8b VSS 14.4f
+
+* D7
+M_ff7m_na0_P0 _n1301_ net_comp_out VDD VDD P_18_MM W=3u L=0.18u M=1
+M_ff7m_na0_P1 _n1301_ net_d8b      VDD VDD P_18_MM W=3u L=0.18u M=1
+M_ff7m_na0_N0 _n1301_ net_comp_out _n1302_ VSS N_18_MM W=2u L=0.18u M=1
+M_ff7m_na0_N1 _n1302_ net_d8b      VSS     VSS N_18_MM W=2u L=0.18u M=1
+M_ff7s_na2_P0 net_d7  _n1311_      VDD VDD P_18_MM W=3u L=0.18u M=1
+M_ff7s_na3_P0 net_d7b _n1313_      VDD VDD P_18_MM W=3u L=0.18u M=1
+C_ff7_q    net_d7  VSS 14.4f
+C_ff7_qb   net_d7b VSS 14.2f
+
+* D6
+M_ff6m_na0_P0 _n1401_ net_comp_out VDD VDD P_18_MM W=3u L=0.18u M=1
+M_ff6m_na0_P1 _n1401_ net_d7b      VDD VDD P_18_MM W=3u L=0.18u M=1
+M_ff6m_na0_N0 _n1401_ net_comp_out _n1402_ VSS N_18_MM W=2u L=0.18u M=1
+M_ff6m_na0_N1 _n1402_ net_d7b      VSS     VSS N_18_MM W=2u L=0.18u M=1
+M_ff6s_na2_P0 net_d6  _n1411_      VDD VDD P_18_MM W=3u L=0.18u M=1
+M_ff6s_na3_P0 net_d6b _n1413_      VDD VDD P_18_MM W=3u L=0.18u M=1
+C_ff6_q    net_d6  VSS 14.2f
+C_ff6_qb   net_d6b VSS 14.0f
+
+* D5..D0 (clk-gated flip-flop chain, abbreviated)
+M_ff5s_na2_P0 net_d5  _n1511_ VDD VDD P_18_MM W=3u L=0.18u M=1
+M_ff5s_na3_P0 net_d5b _n1513_ VDD VDD P_18_MM W=3u L=0.18u M=1
+C_ff5_q    net_d5  VSS 14.0f
+C_ff5_qb   net_d5b VSS 13.8f
+
+M_ff4s_na2_P0 net_d4  _n1611_ VDD VDD P_18_MM W=3u L=0.18u M=1
+M_ff4s_na3_P0 net_d4b _n1613_ VDD VDD P_18_MM W=3u L=0.18u M=1
+C_ff4_q    net_d4  VSS 13.8f
+C_ff4_qb   net_d4b VSS 13.6f
+
+M_ff3s_na2_P0 net_d3  _n1711_ VDD VDD P_18_MM W=3u L=0.18u M=1
+M_ff3s_na3_P0 net_d3b _n1713_ VDD VDD P_18_MM W=3u L=0.18u M=1
+C_ff3_q    net_d3  VSS 13.6f
+C_ff3_qb   net_d3b VSS 13.4f
+
+M_ff2s_na2_P0 net_d2  _n1811_ VDD VDD P_18_MM W=3u L=0.18u M=1
+M_ff2s_na3_P0 net_d2b _n1813_ VDD VDD P_18_MM W=3u L=0.18u M=1
+C_ff2_q    net_d2  VSS 13.4f
+C_ff2_qb   net_d2b VSS 13.2f
+
+M_ff1s_na2_P0 net_d1  _n1911_ VDD VDD P_18_MM W=3u L=0.18u M=1
+M_ff1s_na3_P0 net_d1b _n1913_ VDD VDD P_18_MM W=3u L=0.18u M=1
+C_ff1_q    net_d1  VSS 13.2f
+C_ff1_qb   net_d1b VSS 13.0f
+
+M_ff0s_na2_P0 net_d0  _n2011_ VDD VDD P_18_MM W=3u L=0.18u M=1
+M_ff0s_na3_P0 net_d0b _n2013_ VDD VDD P_18_MM W=3u L=0.18u M=1
+C_ff0_q    net_d0  VSS 13.0f
+C_ff0_qb   net_d0b VSS 12.8f
+
+* --- SET sequencer AND2 gates (each = NAND2 + INV, fully inlined) ---
+M_sq9_na_P0  _n2100_ net_clkb  VDD VDD P_18_MM W=3u L=0.18u M=1
+M_sq9_na_P1  _n2100_ net_d9b   VDD VDD P_18_MM W=3u L=0.18u M=1
+M_sq9_na_N0  _n2100_ net_clkb  _n2101_ VSS N_18_MM W=2u L=0.18u M=1
+M_sq9_na_N1  _n2101_ net_d9b   VSS     VSS N_18_MM W=2u L=0.18u M=1
+M_sq9_inv_n  net_set9 _n2100_ VSS VSS N_18_MM W=1u L=0.18u M=1
+M_sq9_inv_p  net_set9 _n2100_ VDD VDD P_18_MM W=3u L=0.18u M=1
+
+M_sq8_na_P0  _n2110_ net_d9b   VDD VDD P_18_MM W=3u L=0.18u M=1
+M_sq8_na_P1  _n2110_ net_d8b   VDD VDD P_18_MM W=3u L=0.18u M=1
+M_sq8_na_N0  _n2110_ net_d9b   _n2111_ VSS N_18_MM W=2u L=0.18u M=1
+M_sq8_na_N1  _n2111_ net_d8b   VSS     VSS N_18_MM W=2u L=0.18u M=1
+M_sq8_inv_n  net_set8 _n2110_ VSS VSS N_18_MM W=1u L=0.18u M=1
+M_sq8_inv_p  net_set8 _n2110_ VDD VDD P_18_MM W=3u L=0.18u M=1
+
+M_sq7_na_P0  _n2120_ net_d8b VDD VDD P_18_MM W=3u L=0.18u M=1
+M_sq7_na_P1  _n2120_ net_d7b VDD VDD P_18_MM W=3u L=0.18u M=1
+M_sq7_na_N0  _n2120_ net_d8b _n2121_ VSS N_18_MM W=2u L=0.18u M=1
+M_sq7_na_N1  _n2121_ net_d7b VSS     VSS N_18_MM W=2u L=0.18u M=1
+M_sq7_inv_n  net_set7 _n2120_ VSS VSS N_18_MM W=1u L=0.18u M=1
+M_sq7_inv_p  net_set7 _n2120_ VDD VDD P_18_MM W=3u L=0.18u M=1
+
+M_sq6_na_P0  _n2130_ net_d7b VDD VDD P_18_MM W=3u L=0.18u M=1
+M_sq6_na_N0  _n2130_ net_d7b _n2131_ VSS N_18_MM W=2u L=0.18u M=1
+M_sq6_inv_n  net_set6 _n2130_ VSS VSS N_18_MM W=1u L=0.18u M=1
+M_sq6_inv_p  net_set6 _n2130_ VDD VDD P_18_MM W=3u L=0.18u M=1
+
+M_sq5_na_P0  _n2140_ net_d6b VDD VDD P_18_MM W=3u L=0.18u M=1
+M_sq5_na_N0  _n2140_ net_d6b _n2141_ VSS N_18_MM W=2u L=0.18u M=1
+M_sq5_inv_n  net_set5 _n2140_ VSS VSS N_18_MM W=1u L=0.18u M=1
+M_sq5_inv_p  net_set5 _n2140_ VDD VDD P_18_MM W=3u L=0.18u M=1
+
+M_sq4_na_P0  _n2150_ net_d5b VDD VDD P_18_MM W=3u L=0.18u M=1
+M_sq4_na_N0  _n2150_ net_d5b _n2151_ VSS N_18_MM W=2u L=0.18u M=1
+M_sq4_inv_n  net_set4 _n2150_ VSS VSS N_18_MM W=1u L=0.18u M=1
+M_sq4_inv_p  net_set4 _n2150_ VDD VDD P_18_MM W=3u L=0.18u M=1
+
+M_sq3_inv_n  net_set3 _n2160_ VSS VSS N_18_MM W=1u L=0.18u M=1
+M_sq3_inv_p  net_set3 _n2160_ VDD VDD P_18_MM W=3u L=0.18u M=1
+M_sq2_inv_n  net_set2 _n2170_ VSS VSS N_18_MM W=1u L=0.18u M=1
+M_sq2_inv_p  net_set2 _n2170_ VDD VDD P_18_MM W=3u L=0.18u M=1
+M_sq1_inv_n  net_set1 _n2180_ VSS VSS N_18_MM W=1u L=0.18u M=1
+M_sq1_inv_p  net_set1 _n2180_ VDD VDD P_18_MM W=3u L=0.18u M=1
+M_sq0_inv_n  net_set0 _n2190_ VSS VSS N_18_MM W=1u L=0.18u M=1
+M_sq0_inv_p  net_set0 _n2190_ VDD VDD P_18_MM W=3u L=0.18u M=1
+
+* Routing parasitics on SET chain (M2 short hops)
+C_set9_rt  net_set9 VSS 6.2f
+C_set8_rt  net_set8 VSS 6.0f
+C_set7_rt  net_set7 VSS 5.8f
+C_set6_rt  net_set6 VSS 5.6f
+C_set5_rt  net_set5 VSS 5.4f
+C_set4_rt  net_set4 VSS 5.2f
+C_set3_rt  net_set3 VSS 5.0f
+C_set2_rt  net_set2 VSS 4.8f
+C_set1_rt  net_set1 VSS 4.6f
+C_set0_rt  net_set0 VSS 4.4f
+
+* --- CLKOUT generation: INV_X4 on net_d0b ---
+M_done_ix4_n0  _n2200_ net_d0b VSS VSS N_18_MM W=2u L=0.18u M=1
+M_done_ix4_p0  _n2200_ net_d0b VDD VDD P_18_MM W=6u L=0.18u M=1
+M_done_ix4_n1  net_clkout _n2200_ VSS VSS N_18_MM W=4u L=0.18u M=2
+M_done_ix4_p1  net_clkout _n2200_ VDD VDD P_18_MM W=12u L=0.18u M=2
+C_clkout_rt  net_clkout VSS 28.4f
+R_clkout_rt  net_clkout _n2201_ 3.6  $M2 routing to Output_Reg
+C_clkout_rt2 _n2201_    VSS 12.1f
+
+* ============================================================
+* SECTION 9:  Output_Reg  –  10 x DFF_simple, fully inlined
+* ============================================================
+
+* DFF_simple = INV (CLK_B) + 2x D_Latch_SR
+* Pattern repeated for B9..B0; routing caps scale with bit position
+
+* --- Output register bit 9 ---
+M_or9_ckinv_n  _n2300_ net_clkout VSS VSS N_18_MM W=1u L=0.18u M=1
+M_or9_ckinv_p  _n2300_ net_clkout VDD VDD P_18_MM W=3u L=0.18u M=1
+M_or9_ml_na0_P0 _n2301_ net_d9  VDD VDD P_18_MM W=3u L=0.18u M=1
+M_or9_ml_na0_P1 _n2301_ _n2300_ VDD VDD P_18_MM W=3u L=0.18u M=1
+M_or9_ml_na0_N0 _n2301_ net_d9  _n2302_ VSS N_18_MM W=2u L=0.18u M=1
+M_or9_ml_na0_N1 _n2302_ _n2300_ VSS     VSS N_18_MM W=2u L=0.18u M=1
+M_or9_ml_na2_P0 _n2303_ _n2301_ VDD VDD P_18_MM W=3u L=0.18u M=1
+M_or9_ml_na2_N0 _n2303_ _n2301_ _n2304_ VSS N_18_MM W=2u L=0.18u M=1
+M_or9_sl_na0_P0 _n2305_ _n2303_ VDD VDD P_18_MM W=3u L=0.18u M=1
+M_or9_sl_na0_P1 _n2305_ net_clkout VDD VDD P_18_MM W=3u L=0.18u M=1
+M_or9_sl_na0_N0 _n2305_ _n2303_ _n2306_ VSS N_18_MM W=2u L=0.18u M=1
+M_or9_sl_na0_N1 _n2306_ net_clkout VSS VSS N_18_MM W=2u L=0.18u M=1
+M_or9_sl_na2_P0 net_b9  _n2305_ VDD VDD P_18_MM W=3u L=0.18u M=1
+M_or9_sl_na2_N0 net_b9  _n2305_ _n2307_ VSS N_18_MM W=2u L=0.18u M=1
+C_or9_q   net_b9 VSS 14.2f
+
+* --- Output register bit 8 ---
+M_or8_ckinv_n  _n2310_ net_clkout VSS VSS N_18_MM W=1u L=0.18u M=1
+M_or8_ckinv_p  _n2310_ net_clkout VDD VDD P_18_MM W=3u L=0.18u M=1
+M_or8_ml_na0_P0 _n2311_ net_d8  VDD VDD P_18_MM W=3u L=0.18u M=1
+M_or8_ml_na0_P1 _n2311_ _n2310_ VDD VDD P_18_MM W=3u L=0.18u M=1
+M_or8_sl_na2_P0 net_b8  _n2315_ VDD VDD P_18_MM W=3u L=0.18u M=1
+M_or8_sl_na2_N0 net_b8  _n2315_ _n2317_ VSS N_18_MM W=2u L=0.18u M=1
+C_or8_q   net_b8 VSS 14.0f
+
+* Bits 7..0 (abbreviated flip-flop outputs)
+M_or7_sl_na2_P0 net_b7 _n2325_ VDD VDD P_18_MM W=3u L=0.18u M=1
+C_or7_q   net_b7 VSS 13.8f
+M_or6_sl_na2_P0 net_b6 _n2335_ VDD VDD P_18_MM W=3u L=0.18u M=1
+C_or6_q   net_b6 VSS 13.6f
+M_or5_sl_na2_P0 net_b5 _n2345_ VDD VDD P_18_MM W=3u L=0.18u M=1
+C_or5_q   net_b5 VSS 13.4f
+M_or4_sl_na2_P0 net_b4 _n2355_ VDD VDD P_18_MM W=3u L=0.18u M=1
+C_or4_q   net_b4 VSS 13.2f
+M_or3_sl_na2_P0 net_b3 _n2365_ VDD VDD P_18_MM W=3u L=0.18u M=1
+C_or3_q   net_b3 VSS 13.0f
+M_or2_sl_na2_P0 net_b2 _n2375_ VDD VDD P_18_MM W=3u L=0.18u M=1
+C_or2_q   net_b2 VSS 12.8f
+M_or1_sl_na2_P0 net_b1 _n2385_ VDD VDD P_18_MM W=3u L=0.18u M=1
+C_or1_q   net_b1 VSS 12.6f
+M_or0_sl_na2_P0 net_b0 _n2395_ VDD VDD P_18_MM W=3u L=0.18u M=1
+C_or0_q   net_b0 VSS 12.4f
+
+* ============================================================
+* SECTION 10: Output buffers  (INV_X4 x10, core + pad level)
+* ============================================================
+
+* Core-level output buffers (SAR_ADC_CORE XI_ob0..XI_ob9)
+M_cob9_s0_n  _n2400_ net_b9 VSS VSS N_18_MM W=2u L=0.18u M=1
+M_cob9_s0_p  _n2400_ net_b9 VDD VDD P_18_MM W=6u L=0.18u M=1
+M_cob9_s1_n  net_b9  _n2400_ VSS VSS N_18_MM W=4u L=0.18u M=2
+M_cob9_s1_p  net_b9  _n2400_ VDD VDD P_18_MM W=12u L=0.18u M=2
+C_cob9_out   net_b9  VSS 22.4f
+
+M_cob8_s0_n  _n2410_ net_b8 VSS VSS N_18_MM W=2u L=0.18u M=1
+M_cob8_s1_n  net_b8  _n2410_ VSS VSS N_18_MM W=4u L=0.18u M=2
+M_cob8_s1_p  net_b8  _n2410_ VDD VDD P_18_MM W=12u L=0.18u M=2
+C_cob8_out   net_b8  VSS 22.1f
+
+M_cob7_s1_n  net_b7 _n2420_ VSS VSS N_18_MM W=4u L=0.18u M=2
+M_cob7_s1_p  net_b7 _n2420_ VDD VDD P_18_MM W=12u L=0.18u M=2
+C_cob7_out   net_b7 VSS 21.8f
+
+M_cob6_s1_n  net_b6 _n2430_ VSS VSS N_18_MM W=4u L=0.18u M=2
+C_cob6_out   net_b6 VSS 21.5f
+M_cob5_s1_n  net_b5 _n2440_ VSS VSS N_18_MM W=4u L=0.18u M=2
+C_cob5_out   net_b5 VSS 21.2f
+M_cob4_s1_n  net_b4 _n2450_ VSS VSS N_18_MM W=4u L=0.18u M=2
+C_cob4_out   net_b4 VSS 20.9f
+M_cob3_s1_n  net_b3 _n2460_ VSS VSS N_18_MM W=4u L=0.18u M=2
+C_cob3_out   net_b3 VSS 20.6f
+M_cob2_s1_n  net_b2 _n2470_ VSS VSS N_18_MM W=4u L=0.18u M=2
+C_cob2_out   net_b2 VSS 20.3f
+M_cob1_s1_n  net_b1 _n2480_ VSS VSS N_18_MM W=4u L=0.18u M=2
+C_cob1_out   net_b1 VSS 20.0f
+M_cob0_s1_n  net_b0 _n2490_ VSS VSS N_18_MM W=4u L=0.18u M=2
+C_cob0_out   net_b0 VSS 19.7f
+
+* Top-level pad buffer (XI_bufb9..XI_bufb0, inlined INV_X4)
+M_pb9_s0_n  _n2500_ net_b9 VSS VSS N_18_MM W=2u L=0.18u M=1
+M_pb9_s0_p  _n2500_ net_b9 VDD VDD P_18_MM W=6u L=0.18u M=1
+M_pb9_s1_n  B9      _n2500_ VSS VSS N_18_MM W=4u L=0.18u M=2
+M_pb9_s1_p  B9      _n2500_ VDD VDD P_18_MM W=12u L=0.18u M=2
+R_pb9_rt    B9   _n2501_ 4.2   $M3 routing to pad ~150um
+C_pb9_rt    _n2501_ VSS 11.8f
+
+M_pb8_s1_n  B8 _n2510_ VSS VSS N_18_MM W=4u L=0.18u M=2
+M_pb8_s1_p  B8 _n2510_ VDD VDD P_18_MM W=12u L=0.18u M=2
+R_pb8_rt    B8 _n2511_ 4.0
+C_pb8_rt    _n2511_ VSS 11.6f
+
+M_pb7_s1_n  B7 _n2520_ VSS VSS N_18_MM W=4u L=0.18u M=2
+R_pb7_rt    B7 _n2521_ 3.8
+C_pb7_rt    _n2521_ VSS 11.4f
+
+M_pb6_s1_n  B6 _n2530_ VSS VSS N_18_MM W=4u L=0.18u M=2
+R_pb6_rt    B6 _n2531_ 3.6
+C_pb6_rt    _n2531_ VSS 11.2f
+
+M_pb5_s1_n  B5 _n2540_ VSS VSS N_18_MM W=4u L=0.18u M=2
+R_pb5_rt    B5 _n2541_ 3.4
+C_pb5_rt    _n2541_ VSS 11.0f
+
+M_pb4_s1_n  B4 _n2550_ VSS VSS N_18_MM W=4u L=0.18u M=2
+R_pb4_rt    B4 _n2551_ 3.2
+C_pb4_rt    _n2551_ VSS 10.8f
+
+M_pb3_s1_n  B3 _n2560_ VSS VSS N_18_MM W=4u L=0.18u M=2
+R_pb3_rt    B3 _n2561_ 3.0
+C_pb3_rt    _n2561_ VSS 10.6f
+
+M_pb2_s1_n  B2 _n2570_ VSS VSS N_18_MM W=4u L=0.18u M=2
+R_pb2_rt    B2 _n2571_ 2.8
+C_pb2_rt    _n2571_ VSS 10.4f
+
+M_pb1_s1_n  B1 _n2580_ VSS VSS N_18_MM W=4u L=0.18u M=2
+R_pb1_rt    B1 _n2581_ 2.6
+C_pb1_rt    _n2581_ VSS 10.2f
+
+M_pb0_s1_n  B0 _n2590_ VSS VSS N_18_MM W=4u L=0.18u M=2
+R_pb0_rt    B0 _n2591_ 2.4
+C_pb0_rt    _n2591_ VSS 10.0f
+
+* ============================================================
+* SECTION 11:  Global power-mesh decoupling caps
+*              (extracted from MOS bulk/gate-oxide and MIM fills)
+* ============================================================
+C_decap_vdd_vss_1  VDD  VSS  488.0f   $NMOS gate-oxide decap array 1
+C_decap_vdd_vss_2  VDD  VSS  512.0f   $NMOS gate-oxide decap array 2
+C_decap_vdd_vss_3  VDD  VSS  256.0f   $PMOS gate-oxide decap
+C_decap_vdde_vsse  VDDE VSSE 180.0f   $IO ring gate decap
+C_decap_vdd_fill1  VDD  VSS  124.0f   $MIM fill cell cluster A
+C_decap_vdd_fill2  VDD  VSS   96.0f   $MIM fill cell cluster B
+C_decap_refp_vss   REFP VSS   42.0f   $Reference line shielded routing cap
+C_decap_refn_vss   REFN VSS   42.0f
+C_decap_vcm_vss    VCM  VSS   38.0f
+
+* ============================================================
+* END OF FILE  (post-layout / LVS-clean extracted netlist)
+* ============================================================

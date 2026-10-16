@@ -1,5 +1,7 @@
 # Netlist and Spice
 
+> 交接盤點：本目錄實際有 10 個電路子目錄、45 個原始檔案（不含 README）。以下舊歸檔說明提到的「50 個檔案／11 個資料夾」與 `_未列入Notion` 並未完整出現在本目錄；其中五個 A／B／C SAR ADC 檔已由新附件補入 [e516 的 SAR ADC 分類](../e516/00_Netlist_依電路分類/04_SAR_ADC/README.md)。本次保留舊說明供追溯；實際分類與逐檔內容請查根目錄 `HANDOFF_INVENTORY.csv` 及 `e516/FILE_INVENTORY.csv`。各實體子目錄已另補 README。
+
 AI 生成之類比／混合訊號電路 netlist 歸檔，依電路分類，共 **50 個檔案 / 11 個資料夾**。
 分類依據為 Notion 資料庫「Netlsit ver」的 10 筆條目，資料夾編號 01–10 對應該資料庫由上而下的顯示順序（依最後更新時間遞減）；另有一個 `_未列入Notion` 收納資料庫中查無對應條目的檔案。
 
