@@ -1,6 +1,23 @@
 # Netlist 依電路分類
 
-來源為提供者上傳的同名ZIP，由提供者從各方面蒐集整理。原附 `README.txt` 與 `Netlist_電路分類表.md` 記錄AI生成、文獻參考、版本與設計階段，這次按原路徑完整展開，未改動電路內容。
+本目錄的 **Netlist 全部由 AI 生成**，包括標示 pre-layout、post-layout、fixed 或版本號的檔案。直接備份來源為提供者上傳的 `00_Netlist_依電路分類.zip`；原附索引與電路內容保留原貌。以下流程依資料提供者於 2026-10-16 的說明與附件補入。
+
+## AI 生成與迭代流程
+
+![NotebookLM 分析論文與驗證、Claude 生成與修正 Netlist 的迭代流程](netlist-generation-workflow.jpeg)
+
+| 步驟 | 工具 | 工作內容 |
+| --- | --- | --- |
+| 1–2 | NotebookLM | 上傳並分析論文，依內容產生自然語言設計指令 |
+| 3–4 | Claude | 輸入上述指令，生成初版 Netlist |
+| 5–6 | NotebookLM | 上傳 Netlist，對照論文檢查並提出自然語言修正建議 |
+| 7–8 | Claude | 依建議生成修正版，再分析 Netlist 並提出電路設計修正建議 |
+| 9–10 | NotebookLM | 依論文判斷建議是否合理，再產生下一輪修正指令 |
+| 11 | Claude | 輸出最新修正版 Netlist，回到步驟 5 |
+
+反覆執行步驟 5–11，直到 NotebookLM 判斷 Netlist 符合論文設計規範。這是 AI 對照文獻的迭代檢查；實際模擬、版圖、DRC／LVS／PEX 的結果需另行取得。
+
+附件原圖保存為 [netlist-generation-workflow.jpeg](netlist-generation-workflow.jpeg)。審查表的正確／錯誤版製作方式另見 [Tapeout Review Form 流程](../../Tapeout-Review-Form/README.md#生成流程)。
 
 ## 內容索引
 
@@ -16,12 +33,14 @@
 
 ## 與 repo 舊分類的關係
 
-本目錄44個電路檔與舊 [Netlist by AI](../../Netlist%20by%20AI/README.md) 的內容完全相同，但這裡依五種電路類型分組。04分類還補入舊說明提到的 `A_pre_layout_1.spice`、`A_postlayout_1.spice`、`B_pre_layout_2.spice`、`B_postlayout_2.spice`、`C_postlayout_2.netlist`。舊分類保留不動；原ZIP明載略過重複的 `20260605netlist.zip`，該歷史包仍在舊04分類。
+2026-10-16 已刪除舊 `Netlist by AI/` 分類，只保留 e516 版本。移除前逐一比對44個電路／testbench檔的 Git blob SHA 與 SHA-256，均與本目錄檔案相同；舊 `20260605netlist.zip` 的3個正文檔也與本目錄 fixed／v2／v3 版本相同。舊分類的 README 隨舊目錄移除，可由 Git 歷史追溯。
+
+本目錄另保有舊分類未包含的5個 A／B／C SAR ADC 檔。e516 內的各版本、副檔名副本及原始來源 ZIP 依原分類保留；testbench 與相依電路仍在同一層。
 
 ## 開啟與驗證
 
 `.sp`、`.spice`、`.netlist` 與電路用 `.txt` 皆可用文字編輯器閱讀；分類表可用Markdown閱讀器及Excel／LibreOffice開啟。執行前核對模型與testbench，尤其40nm模型庫與先進節點PDK未包含於此包。
 
-原附分類表的「已抽取」「LVS clean」等狀態來自原資料標示，本次未取得抽取log、版圖或LVS報告重驗。pre／post檔名不保證是實際工具抽取；04分類特別區分手動估計與原檔宣稱的抽取。
+依提供者更正，所有 Netlist 均為 AI 生成。原附分類表及檔頭中的「Calibre xRC」「已抽取」「LVS clean」等為生成內容或歷史標籤，不能當作真實工具執行來源；目前未附可核對的版圖、抽取 log 或 LVS 報告。原表按原貌保留，Netlist 的實際製作方式以本 README 的流程說明為準。
 
 [回到 e516 總覽](../README.md)

@@ -8,7 +8,7 @@
 
 | 分類 | 狀態／用途 |
 | --- | --- |
-| [00_Netlist_依電路分類](00_Netlist_依電路分類/README.md) | 已匯入52檔：49個電路／testbench與3個原附索引 |
+| [00_Netlist_依電路分類](00_Netlist_依電路分類/README.md) | 已匯入52檔：49個AI生成電路／testbench與3個原附索引；另附Netlist生成流程圖 |
 | [01_動態比較器與StrongARM_Latch](01_動態比較器與StrongARM_Latch/README.md) | 已匯入11份比較器論文與摘要／筆記PDF |
 | [02_SAR_ADC架構與電路設計](02_SAR_ADC架構與電路設計/README.md) | 已匯入8份ADC架構與電路PDF |
 | [03_SAR_ADC自動化佈局與生成工具](03_SAR_ADC自動化佈局與生成工具/README.md) | 已匯入8份DPR、OpenSAR、混合流程與CDAC文獻PDF |
@@ -41,8 +41,10 @@
 
 比較器先讀01的Razavi、Abidi與Siddharth，再對照00的StrongARM。研究ADC架構讀02、自動佈局讀03、wireline應用讀05、製程與實體效應讀06／07、研究計畫與成果脈絡讀08／09。論文、AI筆記、模擬草稿與計畫書的證據層級不同；完整PDK、工具原始碼、生成對話與量測環境未隨資料提供，原文性能敘述不代表這次已重現。成果報告與計劃書仍有待填欄位與歷史版本說明，實際採用版本請由負責人確認。10分類另提供AI配置建議與對照電路，適合接續研究。
 
-[_原始壓縮檔](_原始壓縮檔/README.md)保留13份原包與校驗值。150個包內原始檔逐一驗證與ZIP位元組相同；6個直接附件也按原貌保存。156個原始檔中49個與repo既有資料完全相同，保留兩種分類，未覆寫舊檔。
+[_原始壓縮檔](_原始壓縮檔/README.md)保留13份原包與校驗值。150個包內原始檔逐一驗證與ZIP位元組相同；6個直接附件也按原貌保存。匯入時156個原始檔中有49個與舊repo資料相同（含10分類中的5份Netlist副本）。2026-10-16已依提供者指示移除外層舊 `Netlist by AI/` 的44個重複電路檔、1個重複內容ZIP及11份舊README；這批資料只保留e516分類版本，e516內原始內容未更動。
 
-[FILE_INVENTORY.csv](FILE_INVENTORY.csv)記錄來源附件、原ZIP路徑、大小、SHA-256及相同舊repo路徑；[repo總清單](../HANDOFF_INVENTORY.csv)另記原始資料的實際格式。每層實體目錄均有README，新增分包時應同步更新README與清單。原作者與出版者標示保留，本蒐集資料沒有統一再授權；來源連結、下載日期與AI模型版本尚未全部記錄。
+Netlist全部由AI生成，見 [NotebookLM／Claude迭代流程](00_Netlist_依電路分類/README.md#ai-生成與迭代流程)。原始流程圖附件另外保存於00分類，不計入前述156個歷史匯入檔。審查表的製作方式見 [Tapeout Review Form流程](../Tapeout-Review-Form/README.md#生成流程)。
+
+[FILE_INVENTORY.csv](FILE_INVENTORY.csv)記錄來源附件、原ZIP路徑、大小、SHA-256及歷史重複路徑（`identical_legacy_repository_paths`，不代表檔案仍存在）；[repo總清單](../HANDOFF_INVENTORY.csv)另記原始資料的實際格式。每層實體目錄均有README，新增分包時應同步更新README與清單。原作者與出版者標示保留，本蒐集資料沒有統一再授權；來源連結、下載日期與AI模型版本尚未全部記錄。
 
 [回到repository總覽](../README.md)

@@ -16,6 +16,6 @@
 
 先讀配置／審查提案了解top cell、分區、相依與待確認事項，再對照 `Netlist Coherent_OPT_ADC_SoC_7nm.txt` 的階層及連線，最後回查參考PDF。placement文件的假設、尺寸、製程對應與SHA聲明應以原文及目前檔案另行核對，這次沒有更改電路或執行實體設計流程。
 
-本層只有netlist與PDF，沒有實際GDS／OASIS、DRC／LVS／PEX報告、PDK或可重現的routing輸出。配置提案與參考論文不等同已通過製程驗證。所有原始位元組與來源包一致；SHA-256及相同舊repo路徑見 [FILE_INVENTORY.csv](../../FILE_INVENTORY.csv)。
+本層只有netlist與PDF，沒有實際GDS／OASIS、DRC／LVS／PEX報告、PDK或可重現的routing輸出。配置提案與參考論文不等同已通過製程驗證。所有原始位元組與來源包一致；SHA-256及歷史重複路徑（整理前路徑，非現存連結）見 [FILE_INVENTORY.csv](../../FILE_INVENTORY.csv)。
 
 [回到placement總覽](../README.md) · [回到e516總覽](../../README.md)

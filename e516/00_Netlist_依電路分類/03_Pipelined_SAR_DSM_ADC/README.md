@@ -19,6 +19,6 @@
 
 四個原始檔與舊Netlist分類05相同，缺少真實SF7P模型與完整testbench。原表的規格和修正敘述是資料本身的紀錄，沒有在本次備份中重新驗證。
 
-原檔未改寫，改動與模擬輸出請另存工作副本。檔案SHA-256與相同舊repo路徑可查 [FILE_INVENTORY.csv](../../FILE_INVENTORY.csv)。
+原檔未改寫，改動與模擬輸出請另存工作副本。檔案SHA-256與歷史重複路徑（整理前路徑，非現存連結）可查 [FILE_INVENTORY.csv](../../FILE_INVENTORY.csv)。
 
 [回到電路分類總覽](../README.md) · [回到e516總覽](../../README.md)

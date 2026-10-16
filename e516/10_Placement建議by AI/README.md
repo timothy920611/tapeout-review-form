@@ -10,6 +10,8 @@
 | [04_SF_RESBUF 2](04_SF_RESBUF%202/README.md) | Source-follower殘差傳遞 | `10_2.zip` |
 | [05_AnalogAgent_ResAmp](05_AnalogAgent_ResAmp/README.md) | NC輔助殘差放大器 | `10_2.zip` |
 
+這5組對照 Netlist 同樣由 AI 生成，與00分類的相應版本內容相同；生成方式見 [NotebookLM／Claude迭代流程](../00_Netlist_依電路分類/README.md#ai-生成與迭代流程)。
+
 ## 怎麼使用
 
 先選主題閱讀子目錄README，再依配置提案、netlist、參考論文的順序對照。netlist可查閱電路階層，PDF用來理解分區、對稱、寄生與routing前置考量。參考文獻未必直接描述整個同名top cell，例如5G SoC資料夾內的論文實際是6nm pipelined SAR ADC。

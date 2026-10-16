@@ -19,6 +19,6 @@
 
 四檔與舊分類09、10相同。實際N7 PDK、部分系統實作及完整驗證證據未附；規格是原檔目標值。
 
-原檔未改寫，改動與模擬輸出請另存工作副本。檔案SHA-256與相同舊repo路徑可查 [FILE_INVENTORY.csv](../../FILE_INVENTORY.csv)。
+原檔未改寫，改動與模擬輸出請另存工作副本。檔案SHA-256與歷史重複路徑（整理前路徑，非現存連結）可查 [FILE_INVENTORY.csv](../../FILE_INVENTORY.csv)。
 
 [回到電路分類總覽](../README.md) · [回到e516總覽](../../README.md)

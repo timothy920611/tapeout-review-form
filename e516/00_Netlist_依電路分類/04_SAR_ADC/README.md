@@ -1,6 +1,6 @@
 # SAR ADC 與前後佈局資料
 
-保存A／B兩組4-bit SAR的pre／post資料、C組10-bit postlayout，以及40nm 10-bit 500MS/s初版與修正版。原表將A／B標為TKU2產生、C標為Calibre xRC抽取，40nm系列標為TKU2 AnalogAgent。
+保存A／B兩組4-bit SAR的pre／post資料、C組10-bit postlayout，以及40nm 10-bit 500MS/s初版與修正版。依提供者更正，**這些 Netlist 全部由 AI 生成**；流程見 [上層說明](../README.md#ai-生成與迭代流程)。
 
 直接備份來源：`00_Netlist_依電路分類.zip`，由repo擁有者蒐集提供；詳細日期、版本及產生方式見上層原附分類表。
 
@@ -19,10 +19,10 @@
 
 ## 使用與限制
 
-A／B postlayout在原附表格中列為「類佈局後、手動估寄生」，不是抽取工具產物；C檔宣稱post-LVS／RC抽取，但沒有附原版圖、抽取log或LVS報告。研究寄生影響時應先辨別來源。
+原表把A／B postlayout標為「類佈局後、手動估寄生」，把C檔標為「Calibre xRC抽取／LVS clean」；這些是原始生成內容中的標籤，不能當作真實工具來源。所有檔案均為AI生成，目前沒有可核對的原版圖、抽取log或LVS報告。
 
 五個A／B／C檔是相對舊repo補入的資料；40nm三檔與舊分類07相同。A／B自帶簡化level-1模型，不能代表實際製程；40nm系列引用的models/40nm_cmos.lib未附。本次只做保存與可讀性檢查。
 
-原檔未改寫，改動與模擬輸出請另存工作副本。檔案SHA-256與相同舊repo路徑可查 [FILE_INVENTORY.csv](../../FILE_INVENTORY.csv)。
+原檔未改寫，改動與模擬輸出請另存工作副本。檔案SHA-256與歷史重複路徑（整理前路徑，非現存連結）可查 [FILE_INVENTORY.csv](../../FILE_INVENTORY.csv)。
 
 [回到電路分類總覽](../README.md) · [回到e516總覽](../../README.md)

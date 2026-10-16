@@ -1,32 +1,32 @@
 # Tapeout review 資料交接
 
-本 repository 保存 Tapeout Review Form 範例、AI 電路 netlist、輸入資料包及 e516 研究資料，供學弟妹了解資料內容、追查版本與延續研究。資料由 repository 擁有者從各方面蒐集整理；各文件原作者與產生方式以原文及已知來源紀錄為準。這是資料歸檔庫，沒有網站、套件安裝程序或自動化 CI。
+本 repository 保存 AI 生成的 Tapeout Review Form、電路 Netlist、輸入資料包及 e516 研究資料，供閱讀、比較與延續研究。論文由資料提供者蒐集；**Netlist 全部由 AI 生成**，審查表則由 ChatGPT、Claude、Gemini 依論文生成正確版與刻意含錯誤版。
 
 ## 從哪裡開始
 
-| 目錄／檔案 | 用途 | 已知來源 |
+| 目錄／檔案 | 用途 | 生成流程／來源 |
 | --- | --- | --- |
-| [e516](e516/README.md) | 11個研究分類與5個外層索引檔，共156個原始檔 | 提供者蒐集整理後上傳的13個ZIP與6個直接附件；保留原包及逐檔來源清單 |
-| [Tapeout-Review-Form](Tapeout-Review-Form/README.md) | 依 ChatGPT、Claude、Gemini 分組的審查表文件 | 既有資料夾按模型名稱分類；產生對話、提示詞、確切模型版本與作者未附完整紀錄 |
-| [Netlist by AI](Netlist%20by%20AI/README.md) | 10 類類比／混合訊號電路與版本演進 | 既有歸檔說明記載來自 `Netlist_by_AI.zip`，並對照 Notion「Netlsit ver」 |
-| [input zip](input%20zip/README.md) | StrongARM、負電容殘差放大器等輸入包 | repo 原有 ZIP，內含 SPICE、JSON 與部分 manifest；確切產生流程待原作者補充 |
-| `LLM比較(孝軒).url` | 指向既有 Notion 比較頁的捷徑 | 檔名與連結來自既有 repo；網頁內容與存取權未在此備份 |
-| [HANDOFF_INVENTORY.csv](HANDOFF_INVENTORY.csv) | 原始資料的路徑、大小、SHA-256 與實際格式 | 由目前 checkout 逐檔計算；包含新增附件，排除新增 README、來源清單及校驗清單 |
+| [e516](e516/README.md) | 11 個研究分類、論文、報告、計劃書與索引 | 保留原始來源包及逐檔清單 |
+| [Tapeout-Review-Form](Tapeout-Review-Form/README.md) | ChatGPT、Claude、Gemini 的審查表案例 | [論文 → 三款 AI → 正確／錯誤版流程圖](Tapeout-Review-Form/README.md#生成流程) |
+| [e516／Netlist 依電路分類](e516/00_Netlist_依電路分類/README.md) | 五類電路、testbench 與修訂版本 | [NotebookLM 與 Claude 迭代生成流程圖](e516/00_Netlist_依電路分類/README.md#ai-生成與迭代流程) |
+| [input zip](input%20zip/README.md) | 電路、Netlist、JSON 與 manifest 輸入包 | 內含 Netlist 同樣由 AI 生成 |
+| `LLM比較(孝軒).url` | 指向既有 Notion 比較頁的捷徑 | 原 repo 連結；頁面內容未在此備份 |
+| [HANDOFF_INVENTORY.csv](HANDOFF_INVENTORY.csv) | 現存原始資料的路徑、大小、SHA-256 與實際格式 | 已移除舊分類的重複檔案列 |
 
-先讀各目錄 README，再依文件編號或電路版本閱讀原檔。`test`／`answer`、`fixed`／`vN` 是既有命名，不能單憑名稱判斷設計是否正確或已驗證。審查表編號與 netlist 目錄編號之間沒有已確認的對應表。
+## 檔案整理
 
-## 文件開啟與已知限制
+2026-10-16 比對後移除舊 `Netlist by AI/`：44 個電路／testbench 檔與 e516 版本的 Git blob SHA、SHA-256 均相同；舊 `20260605netlist.zip` 中的 3 個正文檔也逐一核對，內容都已保存在 e516。因此這批重複資料只保留 **e516 分類版本**，舊分類的 11 份 README 一併移除，歷史紀錄仍可由 Git 追溯。
 
-部分 `.pdf` 實際為 DOCX、部分 `.docx` 實際為 PDF；另有 macOS AppleDouble 中繼資料。為保留備份原貌，未改名、刪除或轉檔。請依清單的 `detected_format` 判斷格式；若軟體拒絕開啟，可複製到 repo 外，再替副本更正副檔名。AppleDouble 不是審查表正文。
+`Tapeout-Review-Form`、`input zip` 與 Notion 捷徑未與 e516 重複，繼續保留。e516 內原有分類、版本及來源 ZIP 保持原貌。各類別的同一案例編號與 Netlist 之間尚無已確認的對應表。
 
-既有 `Tapeout-Review-Form` 目錄可讀取 58 份 DOCX、57 份 PDF，另有 36 個 AppleDouble 檔。這些是實際格式統計，不等同 115 份互不重複的案例。e516 另外保存論文、摘要、成果報告與計劃書，範圍見其總覽。文件中的模擬、量測與通過敘述保留自原文，這次歸檔檢查僅確認可讀取，沒有獨立重現其結果。
+## 文件開啟與使用
 
-## 電路使用
+部分 `.pdf` 實際為 DOCX、部分 `.docx` 實際為 PDF；另有 macOS AppleDouble 中繼資料。請依清單的 `detected_format` 判斷實際格式，必要時在工作副本上更正副檔名。AppleDouble 不屬於審查表正文。
 
-參考 [netlist 歸檔說明](Netlist%20by%20AI/README.md)。多數電路缺少真實 PDK、testbench 或量測結果，不能直接作為 tapeout signoff。優先從 [StrongARM N-parallel](Netlist%20by%20AI/03_Strongarm%20n%20parallel/README.md) 理解檔案相依與基本模擬；該例自帶的模型仍只是通用佔位模型。
+`Tapeout-Review-Form` 目前有 58 份實際 DOCX、57 份實際 PDF，另有 36 個 AppleDouble 檔；格式數量不等同獨立案例數。每款 AI 約生成 9–10 組正確／錯誤版案例，細節見審查表總覽。
 
-## 後續交接與更新
+Netlist 的 `pre`／`post`、`fixed`／`vN` 及檔內工具名稱均屬生成內容或既有命名；AI 對照論文的檢查不等同實際模擬、DRC、LVS 或 PEX。使用電路前請核對模型、testbench 與相依檔。可從 [StrongARM 比較器](e516/00_Netlist_依電路分類/01_StrongARM比較器/README.md) 了解相對 `.include` 與基本模擬的限制。
 
-每一層實體資料夾都應有 README，至少說明用途、來源、檔案／版本、開啟方法與已知限制。新增備份時保留原始壓縮包與相對路徑；同名不同內容另存版本，避免覆寫。新增原始資料後更新 SHA-256 清單，並記錄來源壓縮檔、整理日期及整理者。
+## 維護
 
-目前來源說明以提供者的「從各方面蒐集整理」說明、repo 原有 README、檔頭及原附分類表為依據；未確認的作者、授權、產生對話、PDK 版本及跨目錄對應關係仍需由資料提供者補齊。文件若標註內部使用，使用與分享前應向資料負責人確認適用範圍。
+新增資料時同步更新對應 README 與清單，保留來源、提示詞、模型版本及修訂紀錄。同名不同內容另存版本；原始文獻、AI 筆記與生成電路的來源分別記錄。`e516/FILE_INVENTORY.csv` 的 `identical_legacy_repository_paths` 僅記錄整理前的歷史重複路徑，不能當作現存檔案連結。

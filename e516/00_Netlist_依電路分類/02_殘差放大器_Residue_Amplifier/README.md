@@ -44,6 +44,6 @@ AnalogAgent系列保存初版至fixed_v6；SF系列保存初版至fixed_v7。比
 
 29個原始檔與舊Netlist分類中的04、06、08相同。SF fixed_v7自述為未驗證的架構藍圖；多數模型未附，不可把論文性能當作這份電路已模擬結果。
 
-原檔未改寫，改動與模擬輸出請另存工作副本。檔案SHA-256與相同舊repo路徑可查 [FILE_INVENTORY.csv](../../FILE_INVENTORY.csv)。
+原檔未改寫，改動與模擬輸出請另存工作副本。檔案SHA-256與歷史重複路徑（整理前路徑，非現存連結）可查 [FILE_INVENTORY.csv](../../FILE_INVENTORY.csv)。
 
 [回到電路分類總覽](../README.md) · [回到e516總覽](../../README.md)

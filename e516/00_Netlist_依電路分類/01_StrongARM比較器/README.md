@@ -17,8 +17,10 @@
 
 對照 [比較器論文](../../01_動態比較器與StrongARM_Latch/README.md) 的01、02、03號文件。`STRONGARM_N_PARALLEL.sp` 與 `tb_strongarm_n5.sp` 必須同層，相對 `.include` 才能解析。通用模型只適合基本連接檢查；6nm檔需真實PDK。
 
-本組四檔與舊分類內容完全相同；舊 [testbench說明](../../../Netlist%20by%20AI/03_Strongarm%20n%20parallel/README.md) 記錄ngspice暫態可執行、但兩項量測定義的已知問題。這次沒有修改量測或將結果視為時序簽核。
+本組四檔與已移除的舊分類完全相同，現以本目錄為保留版本。Netlist 由 AI 生成，流程見 [上層說明](../README.md#ai-生成與迭代流程)。
 
-原檔未改寫，改動與模擬輸出請另存工作副本。檔案SHA-256與相同舊repo路徑可查 [FILE_INVENTORY.csv](../../FILE_INVENTORY.csv)。
+舊 README 曾記錄 ngspice 暫態可執行，但 `vdiff_out` 的 `v(voutp,voutn)` 未找到對應向量，`t_resolve` 選到觸發前的交越而得到負延遲。這些是移除舊目錄前轉錄的已知問題，本次未重跑模擬，也未修改原始量測定義。
+
+原檔未改寫，改動與模擬輸出請另存工作副本。檔案SHA-256與歷史重複路徑（整理前路徑，非現存連結）可查 [FILE_INVENTORY.csv](../../FILE_INVENTORY.csv)。
 
 [回到電路分類總覽](../README.md) · [回到e516總覽](../../README.md)
