@@ -1,0 +1,1363 @@
+TY  - CONF
+ID  - REF01
+TI  - High Performance 4nm FinFET Platform (4LPE) with Novel Advanced Transistor Level DTCO for Dual-CPP/HP-HD Standard Cells
+AU  - Y. Yasuda-Masuoka
+AU  - J. Jeong
+AU  - K. Son
+AU  - S. Lee
+AU  - S. Park
+AU  - Y. Lee
+AU  - J. Youn Kim
+AU  - J. Lee
+AU  - M. Cho
+AU  - S. Lee
+AU  - S. Hong
+AU  - H. Hong
+AU  - Y. Jung
+AU  - C. Yoon
+AU  - Y. Ko
+AU  - K. Jung
+AU  - T. Myung
+AU  - J. M. Youn
+AU  - G. Jeong
+PY  - 2021
+T2  - 2021 IEEE International Electron Devices Meeting (IEDM)
+DO  - 10.1109/iedm19574.2021.9720656
+SP  - 13.3.1
+EP  - 13.3.4
+UR  - https://doi.org/10.1109/iedm19574.2021.9720656
+N1  -  使用者 PDF 全文
+ER  - 
+
+TY  - CONF
+ID  - REF02
+TI  - On Automating Finger-Cap Array Synthesis with Optimal Parasitic Matching for Custom SAR ADC
+AU  - C. Y. Chiang
+AU  - C. L. Hu
+AU  - M. P. H. Lin
+AU  - Y. S. Chung
+AU  - S. J. Jou
+AU  - J. T. Wu
+AU  - S. h. W. Chiang
+AU  - C. N. J. Liu
+AU  - H. M. Chen
+PY  - 2023
+T2  - Proceedings of the 28th Asia and South Pacific Design Automation Conference
+DO  - 10.1145/3566097.3567878
+SP  - 352
+EP  - 357
+UR  - https://doi.org/10.1145/3566097.3567878
+N1  -  使用者 PDF 全文
+ER  - 
+
+TY  - CONF
+ID  - REF03
+TI  - A MEOL logic layout optimization recommendation under 3 nm CFET architecture and beyond
+AU  - Y. Li
+AU  - Q. Wu
+AU  - X. Liu
+PY  - 2022
+T2  - 2022 IEEE 16th International Conference on Solid-State & Integrated Circuit Technology (ICSICT)
+DO  - 10.1109/icsict55466.2022.9963470
+SP  - 1
+EP  - 4
+UR  - https://doi.org/10.1109/icsict55466.2022.9963470
+N1  -  使用者 PDF 全文
+ER  - 
+
+TY  - CONF
+ID  - REF04
+TI  - An 8-bit 56GS/s 64x Time-Interleaved ADC with Bootstrapped Sampler and Class-AB Buffer in 4nm CMOS
+AU  - A. S. Yonar
+AU  - P. A. Francese
+AU  - M. Brandli
+AU  - M. Kossel
+AU  - T. Morf
+AU  - J. E. Proesel
+AU  - S. Rylov
+AU  - H. Ainspan
+AU  - M. Cochet
+AU  - Z. Deniz
+AU  - T. Dickson
+AU  - T. Beukema
+AU  - C. Baks
+AU  - M. Beakes
+AU  - J. F. Bulzacchelli
+AU  - Y. H. Choi
+AU  - B. J. Yoo
+AU  - H. Ahn
+AU  - D. H. Lim
+AU  - G. Kang
+AU  - S. H. Park
+AU  - M. Meghelli
+AU  - H. G. Rhew
+AU  - D. Friedman
+AU  - M. Choi
+AU  - M. Soyuer
+AU  - J. Shin
+PY  - 2022
+T2  - 2022 IEEE Symposium on VLSI Technology and Circuits (VLSI Technology and Circuits)
+DO  - 10.1109/vlsitechnologyandcir46769.2022.9830308
+SP  - 168
+EP  - 169
+UR  - https://doi.org/10.1109/vlsitechnologyandcir46769.2022.9830308
+N1  -  使用者 PDF 全文
+ER  - 
+
+TY  - JOUR
+ID  - REF05
+TI  - A 5-nm 60-GS/s 7b 64-Way Time Interleaved Partial Loop Unrolled SAR ADC Achieving 35.2dB SNDR up to 32 GHz
+AU  - C. Nani
+AU  - E. Monaco
+AU  - N. Ghittori
+AU  - A. Bosi
+AU  - D. Albano
+AU  - C. Asero
+AU  - N. Codega
+AU  - A. D. Pasquo
+AU  - I. Fabiano
+AU  - M. Garampazzi
+AU  - F. Giunco
+AU  - L. D. H. Burgos
+AU  - G. Minoia
+AU  - P. Rossi
+AU  - M. Sosio
+AU  - L. Vignoli
+AU  - E. Temporiti
+AU  - S. Scouten
+AU  - S. Jantzi
+PY  - 2025
+T2  - IEEE Journal of Solid-State Circuits
+DO  - 10.1109/jssc.2024.3517333
+VL  - 60
+IS  - 4
+SP  - 1210
+EP  - 1222
+UR  - https://doi.org/10.1109/jssc.2024.3517333
+N1  -  使用者 PDF 全文
+ER  - 
+
+TY  - CONF
+ID  - REF06
+TI  - A 12-bit 10GS/s Time-Interleaved SAR ADC with Even/Odd Channel-Correlated Absolute Error-Based Over-Nyquist Timing-Skew Calibration in 5nm FinFET
+AU  - J. Park
+AU  - J. Park
+AU  - J. Hong
+AU  - S. Park
+AU  - D. Lee
+AU  - S. Lee
+AU  - H. Shin
+AU  - K. Lee
+AU  - B. Koo
+AU  - Y. Cho
+AU  - M. Choi
+AU  - J. Shin
+PY  - 2024
+T2  - 2024 IEEE Symposium on VLSI Technology and Circuits (VLSI Technology and Circuits)
+DO  - 10.1109/vlsitechnologyandcir46783.2024.10631314
+SP  - 1
+EP  - 2
+UR  - https://doi.org/10.1109/vlsitechnologyandcir46783.2024.10631314
+N1  -  使用者 PDF 全文
+ER  - 
+
+TY  - CONF
+ID  - REF07
+TI  - A 16GS/s 10b Time-domain ADC using Pipelined-SAR TDC with Delay Variability Compensation and Background Calibration Achieving 153.8dB FoM in 4nm CMOS
+AU  - J. Liu
+AU  - A. Shabra
+AU  - S. Ho
+AU  - G. Manganaro
+AU  - M. Shuo- Wei Chen
+PY  - 2024
+T2  - 2024 IEEE Symposium on VLSI Technology and Circuits (VLSI Technology and Circuits)
+DO  - 10.1109/vlsitechnologyandcir46783.2024.10631373
+SP  - 1
+EP  - 2
+UR  - https://doi.org/10.1109/vlsitechnologyandcir46783.2024.10631373
+N1  -  使用者 PDF 全文
+ER  - 
+
+TY  - CONF
+ID  - REF08
+TI  - 3.9 A 1.2V High-Voltage-Tolerant Bootstrapped Analog Sampler in 12-bit SAR ADC Using 3nm GAA’s 0.7V Thin-Gate-Oxide Transistor
+AU  - S. Lee
+AU  - J. Park
+AU  - J. Park
+AU  - S. Lee
+AU  - J. Lee
+AU  - Y. Cho
+AU  - M. Choi
+AU  - J. Shin
+PY  - 2024
+T2  - 2024 IEEE International Solid-State Circuits Conference (ISSCC)
+DO  - 10.1109/isscc49657.2024.10454351
+SP  - 70
+EP  - 72
+UR  - https://doi.org/10.1109/isscc49657.2024.10454351
+N1  -  使用者 PDF 全文
+ER  - 
+
+TY  - JOUR
+ID  - REF09
+TI  - A 72-GS/s, 8-Bit DAC-Based Wireline Transmitter in 4-nm FinFET CMOS for 200+ Gb/s Serial Links
+AU  - T. O. Dickson
+AU  - Z. T. Deniz
+AU  - M. Cochet
+AU  - T. J. Beukema
+AU  - M. Kossel
+AU  - T. Morf
+AU  - Y. H. Choi
+AU  - P. A. Francese
+AU  - M. Brändli
+AU  - C. W. Baks
+AU  - J. E. Proesel
+AU  - J. F. Bulzacchelli
+AU  - M. P. Beakes
+AU  - B. J. Yoo
+AU  - H. Ahn
+AU  - D. H. Lim
+AU  - G. Kang
+AU  - S. H. Park
+AU  - M. Meghelli
+AU  - H. G. Rhew
+AU  - D. J. Friedman
+AU  - M. Choi
+AU  - M. Soyuer
+AU  - J. Shin
+PY  - 2023
+T2  - IEEE Journal of Solid-State Circuits
+DO  - 10.1109/jssc.2022.3228632
+VL  - 58
+IS  - 4
+SP  - 1074
+EP  - 1086
+UR  - https://doi.org/10.1109/jssc.2022.3228632
+N1  -  使用者 PDF 全文
+ER  - 
+
+TY  - JOUR
+ID  - REF10
+TI  - Fast and Accurate post-layout simulation methodology using 4nm LVS rule deck
+AU  - W. Lee
+AU  - J. Park
+AU  - J. Park
+AU  - Y. Park
+AU  - M. Kim
+AU  - T. Lee
+AU  - H. Kim
+AU  - C. Shin
+AU  - J. Lee
+AU  - S. Jung
+AU  - B. Koo
+AU  - S. Lee
+AU  - J. Kye
+PY  - 2022
+T2  - 2022 IEEE 31st Microelectronics Design & Test Symposium (MDTS)
+DO  - 10.1109/mdts54894.2022.9826968
+SP  - 1
+EP  - 5
+UR  - https://doi.org/10.1109/mdts54894.2022.9826968
+N1  -  使用者 PDF 全文
+ER  - 
+
+TY  - JOUR
+ID  - REF11
+TI  - ALIGN: A System for Automating Analog Layout
+AU  - T. Dhar
+AU  - K. Kunal
+AU  - Y. Li
+AU  - M. Madhusudan
+AU  - J. Poojary
+AU  - A. K. Sharma
+AU  - W. Xu
+AU  - S. M. Burns
+AU  - R. Harjani
+AU  - J. Hu
+AU  - D. A. Kirkpatrick
+AU  - P. Mukherjee
+AU  - S. Yaldiz
+AU  - S. S. Sapatnekar
+PY  - 2021
+T2  - IEEE Design & Test
+DO  - 10.1109/mdat.2020.3042177
+VL  - 38
+IS  - 2
+SP  - 8
+EP  - 18
+UR  - https://doi.org/10.1109/mdat.2020.3042177
+N1  -  出版書目與公開摘要
+ER  - 
+
+TY  - CONF
+ID  - REF12
+TI  - MAGICAL: Toward Fully Automated Analog IC Layout Leveraging Human and Machine Intelligence
+AU  - B. Xu
+PY  - 2019
+T2  - ICCAD
+UR  - https://krz.engineer/publications/papers/A_ICCAD2019_Xu.pdf
+N1  -  出版書目與公開摘要
+ER  - 
+
+TY  - CONF
+ID  - REF13
+TI  - ParaGraph: Layout Parasitics and Device Parameter Prediction Using Graph Neural Networks
+AU  - H. Ren
+PY  - 2020
+T2  - DAC
+UR  - https://research.nvidia.com/publication/2020-07_paragraph-layout-parasitics-and-device-parameter-prediction-using-graph-neural
+N1  -  出版書目與公開摘要
+ER  - 
+
+TY  - JOUR
+ID  - REF14
+TI  - LayoutCopilot: An LLM-Powered Multiagent Collaborative Framework for Interactive Analog Layout Design
+AU  - B. Liu
+AU  - H. Zhang
+AU  - X. Gao
+AU  - Z. Kong
+AU  - X. Tang
+AU  - Y. Lin
+AU  - R. Wang
+AU  - R. Huang
+PY  - 2025
+T2  - IEEE Transactions on Computer-Aided Design of Integrated Circuits and Systems
+DO  - 10.1109/tcad.2025.3529805
+VL  - 44
+IS  - 8
+SP  - 3126
+EP  - 3139
+UR  - https://doi.org/10.1109/tcad.2025.3529805
+N1  - 2024 預印本；2025 正式期刊 作者版本可查／出版書目與摘要
+ER  - 
+
+TY  - UNPB
+ID  - REF15
+TI  - AnalogAgent: Self-Improving Analog Circuit Design Automation with LLM Agents
+AU  - Z. Bao
+PY  - 2026
+T2  - arXiv:2603.23910v1 預印本
+DO  - 10.48550/arXiv.2603.23910
+UR  - https://arxiv.org/abs/2603.23910
+N1  -  作者版本可查／出版書目與摘要
+ER  - 
+
+TY  - JOUR
+ID  - REF16
+TI  - The StrongARM Latch [A Circuit for All Seasons]
+AU  - B. Razavi
+PY  - 2015
+T2  - IEEE Solid-State Circuits Magazine
+DO  - 10.1109/mssc.2015.2418155
+VL  - 7
+IS  - 2
+SP  - 12
+EP  - 17
+UR  - https://doi.org/10.1109/mssc.2015.2418155
+N1  -  出版書目與公開摘要
+ER  - 
+
+TY  - CONF
+ID  - REF17
+TI  - 7.1 A 212.5Gb/s DSP-Based PAM-4 Transceiver with 50dB Loss Compensation for Large AI System Interconnects in 4nm FinFET
+AU  - E. H. Chen
+AU  - H. Park
+AU  - M. Abdullatif
+AU  - M. Gandara
+AU  - A. ElShater
+AU  - A. Khashaba
+AU  - S. H. Huang
+AU  - T. B. Liu
+AU  - A. Atharav
+AU  - J. Lee
+AU  - Q. Nehal
+AU  - M. Megahed
+AU  - Y. Chun
+AU  - C. E. Shieh
+AU  - V. Jolly
+AU  - S. Kwon
+AU  - H. T. Chien
+AU  - K. C. Wu
+AU  - C. E. Liu
+AU  - P. Yan
+AU  - P. J. Li
+AU  - C. H. Chen
+AU  - T. S. Lin
+AU  - P. C. Liu
+AU  - T. Ali
+PY  - 2025
+T2  - 2025 IEEE International Solid-State Circuits Conference (ISSCC)
+DO  - 10.1109/isscc49661.2025.10904601
+SP  - 1
+EP  - 3
+UR  - https://doi.org/10.1109/isscc49661.2025.10904601
+N1  -  出版書目與公開摘要
+ER  - 
+
+TY  - CONF
+ID  - REF18
+TI  - 7.4 A 112Gb/s DSP-Based PAM-4 Receiver with an LC-Resonator-Based CTLE for >52dB Loss Compensation in 4nm FinFET
+AU  - H. Park
+AU  - Q. Nehal
+AU  - M. Gandara
+AU  - A. Atharav
+AU  - J. Lee
+AU  - J. Li
+AU  - T. Ali
+PY  - 2025
+T2  - 2025 IEEE International Solid-State Circuits Conference (ISSCC)
+DO  - 10.1109/isscc49661.2025.10904638
+SP  - 142
+EP  - 144
+UR  - https://doi.org/10.1109/isscc49661.2025.10904638
+N1  -  出版書目與公開摘要
+ER  - 
+
+TY  - CONF
+ID  - REF19
+TI  - A 212.5Gb/s Pam-4 Receiver With Mutual Inductive Coupled Gm-Tia in 4nm Finfet
+AU  - K. Kwon
+AU  - H. Roh
+AU  - K. Kim
+AU  - D. Noh
+AU  - W. Lim
+AU  - J. Park
+AU  - D. Lim
+AU  - D. Jang
+AU  - P. Lim
+AU  - J. Do
+AU  - S. Yim
+AU  - D. H. Lim
+AU  - B. J. Yoo
+AU  - M. Choi
+AU  - H. G. Rhew
+AU  - J. Shin
+PY  - 2025
+T2  - 2025 Symposium on VLSI Technology and Circuits (VLSI Technology and Circuits)
+DO  - 10.23919/vlsitechnologyandcir65189.2025.11074881
+SP  - 1
+EP  - 3
+UR  - https://doi.org/10.23919/vlsitechnologyandcir65189.2025.11074881
+N1  -  出版書目與公開摘要
+ER  - 
+
+TY  - CONF
+ID  - REF20
+TI  - A 2.4-to-4.2GHz 440.2fsrms-Integrated-Jitter 4.3mW Ring-Oscillator-Based PLL Using a Switched-Capacitor-Bias-Based Sampling PD in 4nm FinFET CMOS
+AU  - J. Jung
+AU  - K. Lee
+AU  - G. Kong
+AU  - B. Lim
+AU  - S. Kim
+AU  - S. Oh
+AU  - J. Lee
+PY  - 2023
+T2  - 2023 IEEE Symposium on VLSI Technology and Circuits (VLSI Technology and Circuits)
+DO  - 10.23919/vlsitechnologyandcir57934.2023.10185300
+SP  - 1
+EP  - 2
+UR  - https://doi.org/10.23919/vlsitechnologyandcir57934.2023.10185300
+N1  -  出版書目與公開摘要
+ER  - 
+
+TY  - JOUR
+ID  - REF21
+TI  - A 4-nm 16-Gb/s/pin Single-Ended PAM-4 Parallel Transceiver With Switching-Jitter Compensation and Transmitter Optimization
+AU  - J. Jin
+AU  - S. M. Lee
+AU  - K. Min
+AU  - S. Ju
+AU  - J. Lim
+AU  - J. Yook
+AU  - J. Lee
+AU  - H. Chae
+AU  - K. Kang
+AU  - Y. Hong
+AU  - Y. Jeong
+AU  - S. S. Park
+AU  - S. H. Kim
+AU  - J. Lee
+AU  - J. Kim
+AU  - S. U. Kwak
+PY  - 2024
+T2  - IEEE Journal of Solid-State Circuits
+DO  - 10.1109/jssc.2023.3319637
+VL  - 59
+IS  - 1
+SP  - 184
+EP  - 195
+UR  - https://doi.org/10.1109/jssc.2023.3319637
+N1  - 2023 線上先行；2024 正式卷期 出版書目與公開摘要
+ER  - 
+
+TY  - CONF
+ID  - REF22
+TI  - A 32Gb/s 0.36pJ/bit 3nm Chiplet IO Using 2.5D CoWoS Package with Real-Time and Per-Lane CDR and Bathtub Monitoring
+AU  - J. Gu
+AU  - J. Ma
+AU  - J. Guo
+AU  - F. Guo
+AU  - D. Liang
+AU  - Y. Li
+AU  - C. Shen
+AU  - P. Gao
+AU  - X. Zhang
+AU  - J. Ding
+AU  - M. Sorna
+AU  - H. Wang
+AU  - C. Cui
+AU  - J. Troupe
+AU  - P. Metty
+AU  - K. Chang
+PY  - 2024
+T2  - 2024 IEEE Symposium on VLSI Technology and Circuits (VLSI Technology and Circuits)
+DO  - 10.1109/vlsitechnologyandcir46783.2024.10631527
+SP  - 1
+EP  - 2
+UR  - https://doi.org/10.1109/vlsitechnologyandcir46783.2024.10631527
+N1  -  出版書目與公開摘要
+ER  - 
+
+TY  - CONF
+ID  - REF23
+TI  - 2nm Platform Technology Featuring Energy-Efficient Nanosheet Transistors and Interconnects Co-Optimized with 3DIC for AI, HPC and Mobile SoC Applications
+AU  - G. Yeap
+AU  - S. S. Lin
+AU  - H. L. Shang
+AU  - H. C. Lin
+AU  - Y. C. Peng
+AU  - M. Wang
+AU  - P. Wang
+AU  - C. Lin
+AU  - K. Yu
+AU  - W. Lee
+AU  - H. Chen
+AU  - D. Lin
+AU  - B. Yang
+AU  - C. Yeh
+AU  - C. Chan
+AU  - J. Kuo
+AU  - C. M. Liu
+AU  - T. Chiu
+AU  - M. Wen
+AU  - T. L. Lee
+AU  - C. Chang
+AU  - R. Chen
+AU  - P. H. Huang
+AU  - C. S. Hou
+AU  - Y. Lin
+AU  - F. Yang
+AU  - J. Wang
+AU  - S. Fung
+AU  - R. Chen
+AU  - C. H. Lee
+AU  - T. Lee
+AU  - W. Chang
+AU  - D. Lee
+AU  - C. Ting
+AU  - T. Chang
+AU  - H. Huang
+AU  - H. Lin
+AU  - C. Tseng
+AU  - C. Chang
+AU  - K. Huang
+AU  - Y. Lu
+AU  - C. H. Chen
+AU  - C. O. Chui
+AU  - K. Chen
+AU  - M. Tsai
+AU  - C. Chen
+AU  - N. Wu
+AU  - H. Chiang
+AU  - X. Chen
+AU  - S. Sun
+AU  - J. Tzeng
+AU  - K. Wang
+AU  - Y. Peng
+AU  - H. Liao
+AU  - T. Chen
+AU  - Y. Cheng
+AU  - J. Chang
+AU  - K. Hsieh
+AU  - A. Cheng
+AU  - G. Liu
+AU  - A. Chen
+AU  - H. Lin
+AU  - K. Chiang
+AU  - C. Tsai
+AU  - H. Wang
+AU  - W. Sheu
+AU  - J. Yeh
+AU  - Y. Chen
+AU  - C. Lin
+AU  - J. Wu
+AU  - M. Cao
+AU  - L. Juang
+AU  - F. Lai
+AU  - Y. Ku
+AU  - S. M. Jang
+AU  - L. C. Lu
+PY  - 2024
+T2  - 2024 IEEE International Electron Devices Meeting (IEDM)
+DO  - 10.1109/iedm50854.2024.10873475
+SP  - 1
+EP  - 4
+UR  - https://doi.org/10.1109/iedm50854.2024.10873475
+N1  -  出版書目與公開摘要
+ER  - 
+
+TY  - CONF
+ID  - REF24
+TI  - A 38.1Mb/mm2 SRAM in a 2nm-CMOS-Nanosheet Technology for High-Density and Energy-Efficient Compute
+AU  - T. Y. J. Chang
+AU  - Y. H. Chen
+AU  - K. V. Reddy
+AU  - N. Puri
+AU  - T. Masina
+AU  - K. C. Lin
+AU  - P. S. Wang
+AU  - Y. Lin
+AU  - C. Y. Lin
+AU  - Y. H. Nien
+AU  - H. Fujiwara
+AU  - K. F. Lin
+AU  - M. H. Chang
+AU  - C. W. Wu
+AU  - R. Lee
+AU  - Y. Wang
+AU  - H. J. Liao
+AU  - Q. Li
+AU  - P. W. Wang
+AU  - G. Yeap
+PY  - 2025
+T2  - 2025 IEEE International Solid-State Circuits Conference (ISSCC)
+DO  - 10.1109/isscc49661.2025.10904759
+SP  - 492
+EP  - 494
+UR  - https://doi.org/10.1109/isscc49661.2025.10904759
+N1  -  出版書目與公開摘要
+ER  - 
+
+TY  - CONF
+ID  - REF25
+TI  - Backside Power Distribution for Nanosheet Technologies Beyond 2nm
+AU  - R. Xie
+AU  - W. Hong
+AU  - C. Zhang
+AU  - J. Lee
+AU  - K. Brew
+AU  - R. Johnson
+AU  - N. Lanzillo
+AU  - H. Shobha
+AU  - T. Kim
+AU  - P. Park
+AU  - S. Mochizuki
+AU  - I. Saraf
+AU  - C. Park
+AU  - L. Zhuang
+AU  - C. Osborn
+AU  - W. K. Li
+AU  - F. Liu
+AU  - M. Sankarapandian
+AU  - C. J. Yang
+AU  - J. Li
+AU  - L. Tierney
+AU  - R. Pujari
+AU  - Y. Sulehria
+AU  - Y. Song
+AU  - H. Zhou
+AU  - M. Wang
+AU  - M. Belyansky
+AU  - S. Ghosh
+AU  - H. Zhang
+AU  - K. Motoyama
+AU  - D. Sarkar
+AU  - W. Kim
+AU  - A. Chu
+AU  - T. Li
+AU  - F. Carta
+AU  - O. Gluschenkov
+AU  - J. Oh
+AU  - M. Malley
+AU  - P. Chu
+AU  - S. Nguyen
+AU  - K. Luedders
+AU  - J. Lee
+AU  - S. Khan
+AU  - P. R. Chowdhury
+AU  - H. Huang
+AU  - A. Shadman
+AU  - S. Sieg
+AU  - D. Dechene
+AU  - D. Edelstein
+AU  - J. Arnold
+AU  - T. Yamashita
+AU  - K. Choi
+AU  - K. i. Seo
+AU  - D. Guo
+AU  - H. Bu
+PY  - 2024
+T2  - 2024 IEEE Symposium on VLSI Technology and Circuits (VLSI Technology and Circuits)
+DO  - 10.1109/vlsitechnologyandcir46783.2024.10631449
+SP  - 1
+EP  - 2
+UR  - https://doi.org/10.1109/vlsitechnologyandcir46783.2024.10631449
+N1  -  出版書目與公開摘要
+ER  - 
+
+TY  - CONF
+ID  - REF26
+TI  - Intel PowerVia Technology: Backside Power Delivery for High Density and High-Performance Computing
+AU  - W. Hafez
+AU  - P. Agnihotri
+AU  - M. Asoro
+AU  - M. Aykol
+AU  - B. Bains
+AU  - R. Bambery
+AU  - M. Bapna
+AU  - A. Barik
+AU  - A. Chatterjee
+AU  - P. C. Chiu
+AU  - T. Chu
+AU  - C. Firby
+AU  - K. Fischer
+AU  - M. Fradkin
+AU  - H. Greve
+AU  - A. Gupta
+AU  - E. Haralson
+AU  - M. Haran
+AU  - J. Hicks
+AU  - A. Illa
+AU  - M. Jang
+AU  - S. Klopcic
+AU  - M. Kobrinsky
+AU  - B. Kuns
+AU  - H. h. Lai
+AU  - G. Lanni
+AU  - S. H. Lee
+AU  - N. Lindert
+AU  - C. l. Lo
+AU  - Y. Luo
+AU  - G. Malyavanatham
+AU  - B. Marinkovic
+AU  - Y. Maymon
+AU  - M. Nabors
+AU  - J. Neirynck
+AU  - P. Packan
+AU  - A. Paliwal
+AU  - L. Pantisano
+AU  - L. Paulson
+AU  - P. Penmatsa
+AU  - C. Prasad
+AU  - C. Puls
+AU  - T. Rahman
+AU  - R. Ramaswamy
+AU  - S. Samant
+AU  - B. Sell
+AU  - K. Sethi
+AU  - F. Shah
+AU  - M. Shamanna
+AU  - K. Shang
+AU  - Q. Li
+AU  - M. Sibakoti
+AU  - J. Stoeger
+AU  - N. Strutt
+AU  - R. Thirugnanasambandam
+AU  - C. Tsai
+AU  - X. Wang
+AU  - A. Wang
+AU  - S. j. Wu
+AU  - Q. Xu
+AU  - X. h. Zhong
+AU  - S. Natarajan
+PY  - 2023
+T2  - 2023 IEEE Symposium on VLSI Technology and Circuits (VLSI Technology and Circuits)
+DO  - 10.23919/vlsitechnologyandcir57934.2023.10185208
+SP  - 1
+EP  - 2
+UR  - https://doi.org/10.23919/vlsitechnologyandcir57934.2023.10185208
+N1  -  出版書目與公開摘要
+ER  - 
+
+TY  - CONF
+ID  - REF27
+TI  - Design Challenges and Techniques for 5nm FinFET CMOS Analog/Mixed-Signal Circuits
+AU  - S. Goyal
+AU  - S. K. Wadhwa
+AU  - D. Tripathi
+AU  - G. Agrawal
+AU  - K. Thakur
+AU  - D. K. Jain
+AU  - A. L. S. Loke
+AU  - A. Kumar
+AU  - M. K. Upadhyay
+AU  - Bhawna
+AU  - S. K. Dey
+PY  - 2023
+T2  - 2023 36th International Conference on VLSI Design and 2023 22nd International Conference on Embedded Systems (VLSID)
+DO  - 10.1109/vlsid57277.2023.00033
+UR  - https://doi.org/10.1109/vlsid57277.2023.00033
+N1  -  出版書目與公開摘要
+ER  - 
+
+TY  - JOUR
+ID  - REF28
+TI  - Interactive Analog Layout Editing With Instant Placement and Routing Legalization
+AU  - X. Gao
+AU  - H. Zhang
+AU  - M. Liu
+AU  - L. Shen
+AU  - D. Z. Pan
+AU  - Y. Lin
+AU  - R. Wang
+AU  - R. Huang
+PY  - 2023
+T2  - IEEE Transactions on Computer-Aided Design of Integrated Circuits and Systems
+DO  - 10.1109/tcad.2022.3190234
+VL  - 42
+IS  - 3
+SP  - 698
+EP  - 711
+UR  - https://doi.org/10.1109/tcad.2022.3190234
+N1  - 2022 線上先行；2023 正式卷期 作者版本可查／出版書目與摘要
+ER  - 
+
+TY  - JOUR
+ID  - REF29
+TI  - Graph Attention-Based Symmetry Constraint Extraction for Analog Circuits
+AU  - Q. Xu
+AU  - L. Wang
+AU  - J. Wang
+AU  - L. Cheng
+AU  - S. Chen
+AU  - Y. Kang
+PY  - 2024
+T2  - IEEE Transactions on Circuits and Systems I: Regular Papers
+DO  - 10.1109/tcsi.2024.3391187
+VL  - 71
+IS  - 8
+SP  - 3754
+EP  - 3763
+UR  - https://doi.org/10.1109/tcsi.2024.3391187
+N1  -  作者版本可查／出版書目與摘要
+ER  - 
+
+TY  - CONF
+ID  - REF30
+TI  - Reinforcement Learning Guided Detailed Routing for Custom Circuits
+AU  - H. Chen
+AU  - K. C. Hsu
+AU  - W. J. Turner
+AU  - P. H. Wei
+AU  - K. Zhu
+AU  - D. Z. Pan
+AU  - H. Ren
+PY  - 2023
+T2  - Proceedings of the 2023 International Symposium on Physical Design
+DO  - 10.1145/3569052.3571874
+SP  - 26
+EP  - 34
+UR  - https://doi.org/10.1145/3569052.3571874
+N1  -  作者版本可查／出版書目與摘要
+ER  - 
+
+TY  - JOUR
+ID  - REF31
+TI  - A Self-Supervised Learning of a Foundation Model for Analog Layout Design Automation
+AU  - S. Jeong
+AU  - W. J. Choi
+AU  - J. Choi
+AU  - A. Biswas
+AU  - B. Kim
+PY  - 2026
+T2  - IEEE Transactions on Circuits and Systems I: Regular Papers
+DO  - 10.1109/tcsi.2025.3615646
+VL  - 73
+IS  - 2
+SP  - 1220
+EP  - 1230
+UR  - https://doi.org/10.1109/tcsi.2025.3615646
+N1  - 2025 線上先行；2026 正式卷期 作者版本可查／出版書目與摘要
+ER  - 
+
+TY  - CONF
+ID  - REF32
+TI  - CircuitNet 2.0: An Advanced Dataset for Promoting Machine Learning Innovations in Realistic Chip Design Environment
+AU  - X. Jiang
+PY  - 2024
+T2  - ICLR
+UR  - https://proceedings.iclr.cc/paper_files/paper/2024/hash/464917b6103e074e1f9df7a2bf3bf6ba-Abstract-Conference.html
+N1  -  作者版本可查／出版書目與摘要
+ER  - 
+
+TY  - CONF
+ID  - REF33
+TI  - PGAU: Static IR Drop Analysis for Power Grid using Attention U-Net Architecture and Label Distribution Smoothing
+AU  - F. Guo
+AU  - J. Liu
+AU  - J. Zhai
+AU  - J. Jia
+AU  - K. Zhao
+AU  - C. Shi
+PY  - 2024
+T2  - Proceedings of the Great Lakes Symposium on VLSI 2024
+DO  - 10.1145/3649476.3658711
+SP  - 452
+EP  - 458
+UR  - https://doi.org/10.1145/3649476.3658711
+N1  -  作者版本可查／出版書目與摘要
+ER  - 
+
+TY  - CONF
+ID  - REF34
+TI  - ATPlace2.5D: Analytical Thermal-Aware Chiplet Placement Framework for Large-Scale 2.5D-IC
+AU  - Q. Wang
+AU  - X. Li
+AU  - T. Jia
+AU  - Y. Lin
+AU  - R. Wang
+AU  - R. Huang
+PY  - 2024
+T2  - Proceedings of the 43rd IEEE/ACM International Conference on Computer-Aided Design
+DO  - 10.1145/3676536.3676648
+SP  - 1
+EP  - 9
+UR  - https://doi.org/10.1145/3676536.3676648
+N1  -  作者版本可查／出版書目與摘要
+ER  - 
+
+TY  - CONF
+ID  - REF35
+TI  - High Bandwidth and Energy Efficient Electrical-Optical System Integration Using COUPE Technology
+AU  - C. H. Lu
+AU  - C. C. Lin
+AU  - T. C. Tang
+AU  - C. Y. Lin
+AU  - J. Chang
+AU  - C. H. Tsai
+AU  - H. Hsia
+AU  - J. C. Twu
+AU  - C. S. Liu
+AU  - G. Wu
+AU  - K. C. Yee
+AU  - D. C. H. Yu
+PY  - 2024
+T2  - 2024 IEEE 74th Electronic Components and Technology Conference (ECTC)
+DO  - 10.1109/ectc51529.2024.00144
+SP  - 893
+EP  - 897
+UR  - https://doi.org/10.1109/ectc51529.2024.00144
+N1  -  出版書目與公開摘要
+ER  - 
+
+TY  - CONF
+ID  - REF36
+TI  - Optical and Electrical Characterization of a Compact Universal Photonic Engine
+AU  - M. F. Chen
+AU  - H. T. Cheng
+AU  - C. H. Tsou
+AU  - S. Y. Hou
+AU  - T. H. Yu
+AU  - S. Liu
+AU  - R. Lu
+AU  - K. C. Hsu
+PY  - 2025
+T2  - 2025 IEEE 75th Electronic Components and Technology Conference (ECTC)
+DO  - 10.1109/ectc51687.2025.00015
+SP  - 54
+EP  - 58
+UR  - https://doi.org/10.1109/ectc51687.2025.00015
+N1  -  出版書目與公開摘要
+ER  - 
+
+TY  - CONF
+ID  - REF37
+TI  - Silicon Photonics Platform for Next Generation Data Communication Technologies
+AU  - S. K. Yeh
+AU  - C. T. Shih
+AU  - F. Yuan
+AU  - C. M. Hung
+AU  - C. H. Chu
+AU  - H. Y. Lu
+AU  - J. H. Yang
+AU  - W. S. Lo
+AU  - C. H. Chen
+AU  - S. Y. Tsai
+AU  - W. C. Tai
+AU  - S. C. Liu
+AU  - S. D. Wang
+AU  - K. Q. Wen
+AU  - W. C. Wang
+AU  - C. C. Tung
+AU  - B. T. Lin
+AU  - F. Hu
+AU  - P. C. Yeh
+AU  - C. H. Huang
+AU  - T. H. Wu
+AU  - C. C. Chu
+AU  - W. C. Kuo
+AU  - C. Y. Tsai
+AU  - S. W. Chang
+AU  - E. C. Chen
+AU  - C. W. Chiang
+AU  - Y. M. Wang
+AU  - F. C. Huang
+AU  - S. M. Wu
+AU  - J. Y. Lin
+AU  - C. T. Tang
+AU  - W. K. Liu
+AU  - T. L. Hsieh
+AU  - W. J. Mao
+AU  - W. T. Lo
+AU  - C. Y. Peng
+AU  - S. H. Su
+AU  - F. Tsui
+AU  - N. Shi
+AU  - V. Shih
+AU  - S. F. Huang
+PY  - 2024
+T2  - 2024 IEEE International Electron Devices Meeting (IEDM)
+DO  - 10.1109/iedm50854.2024.10873369
+SP  - 1
+EP  - 4
+UR  - https://doi.org/10.1109/iedm50854.2024.10873369
+N1  -  出版書目與公開摘要
+ER  - 
+
+TY  - CONF
+ID  - REF38
+TI  - EPIC-BOE: An Electronic-Photonic Chiplet Integration Technology with IC Processes for Broadband Optical Engine Applications
+AU  - H. Hsia
+AU  - J. Y. Wu
+AU  - S. W. Liang
+AU  - T. F. Tsai
+AU  - S. W. Lu
+AU  - C. W. Tseng
+AU  - H. K. Chiu
+AU  - C. C. Chang
+AU  - C. H. Tung
+AU  - C. S. Liu
+AU  - K. C. Yee
+AU  - D. C. H. Yu
+PY  - 2024
+T2  - 2024 IEEE International Electron Devices Meeting (IEDM)
+DO  - 10.1109/iedm50854.2024.10873589
+SP  - 1
+EP  - 4
+UR  - https://doi.org/10.1109/iedm50854.2024.10873589
+N1  -  出版書目與公開摘要
+ER  - 
+
+TY  - CONF
+ID  - REF39
+TI  - LiDAR: Automated Curvy Waveguide Detailed Routing for Large-Scale Photonic Integrated Circuits
+AU  - H. Zhou
+AU  - K. Zhu
+AU  - J. Gu
+PY  - 2025
+T2  - Proceedings of the 2025 International Symposium on Physical Design
+DO  - 10.1145/3698364.3705355
+SP  - 64
+EP  - 72
+UR  - https://doi.org/10.1145/3698364.3705355
+N1  -  作者版本可查／出版書目與摘要
+ER  - 
+
+TY  - CONF
+ID  - REF40
+TI  - Apollo: Automated Routing-Informed Placement for Large-Scale Photonic Integrated Circuits
+AU  - H. Zhou
+AU  - H. Yang
+AU  - N. Gangi
+AU  - Z. R. Huang
+AU  - H. Ren
+AU  - J. Gu
+PY  - 2025
+T2  - 2025 IEEE/ACM International Conference On Computer Aided Design (ICCAD)
+DO  - 10.1109/iccad66269.2025.11240728
+SP  - 1
+EP  - 9
+UR  - https://doi.org/10.1109/iccad66269.2025.11240728
+N1  -  作者版本可查／出版書目與摘要
+ER  - 
+
+TY  - JOUR
+ID  - REF41
+TI  - Thermal management in copackaged optics: from device assembly to system operation
+AU  - Z. Yang
+AU  - G. He
+AU  - Y. Li
+AU  - Y. Sun
+AU  - W. Luo
+AU  - W. Zhang
+PY  - 2026
+T2  - Advanced Photonics Nexus
+DO  - 10.1117/1.apn.5.3.034001
+VL  - 5
+IS  - 03
+SP  - 1
+EP  - 23
+UR  - https://doi.org/10.1117/1.apn.5.3.034001
+N1  -  出版書目與公開摘要
+ER  - 
+
+TY  - JOUR
+ID  - REF42
+TI  - Co-packaged optics (CPO): status, challenges, and solutions
+AU  - M. Tan
+AU  - J. Xu
+AU  - S. Liu
+AU  - J. Feng
+AU  - H. Zhang
+AU  - C. Yao
+AU  - S. Chen
+AU  - H. Guo
+AU  - G. Han
+AU  - Z. Wen
+AU  - B. Chen
+AU  - Y. He
+AU  - X. Zheng
+AU  - D. Ming
+AU  - Y. Tu
+AU  - Q. Fu
+AU  - N. Qi
+AU  - D. Li
+AU  - L. Geng
+AU  - S. Wen
+AU  - F. Yang
+AU  - H. He
+AU  - F. Liu
+AU  - H. Xue
+AU  - Y. Wang
+AU  - C. Qiu
+AU  - G. Mi
+AU  - Y. Li
+AU  - T. Chang
+AU  - M. Lai
+AU  - L. Zhang
+AU  - Q. Hao
+AU  - M. Qin
+PY  - 2023
+T2  - Frontiers of Optoelectronics
+DO  - 10.1007/s12200-022-00055-y
+VL  - 16
+IS  - 1
+UR  - https://doi.org/10.1007/s12200-022-00055-y
+N1  -  出版書目與公開摘要
+ER  - 
+
+TY  - CONF
+ID  - REF43
+TI  - Samsung Foundry 300-mm Silicon Photonics Platform for HPC/AI Applications
+AU  - S. H. Hwang
+AU  - S. H. Kim
+AU  - J. Park
+AU  - B. Son
+AU  - J. T. Yang
+AU  - S. Lee
+AU  - S. Han
+AU  - S. K. Kang
+AU  - D. C. Kim
+AU  - D. Kim
+AU  - S. Kim
+AU  - S. Kim
+AU  - Y. C. Kim
+AU  - Y. Kim
+AU  - J. Kim
+AU  - T. Min
+AU  - K. Park
+AU  - R. Park
+AU  - Y. Park
+AU  - J. Y. Park
+AU  - C. W. Baik
+AU  - D. Seo
+AU  - S. Song
+AU  - H. Sim
+AU  - D. Eom
+AU  - B. Yun
+AU  - D. Lee
+AU  - W. B. Lee
+AU  - E. Lee
+AU  - J. Lee
+AU  - C. Lee
+AU  - C. Lee
+AU  - W. Jeon
+AU  - K. Jeong
+AU  - M. Jeong
+AU  - K. S. Cho
+AU  - K. Cho
+AU  - H. Cho
+AU  - S. Choi
+AU  - J. Choi
+AU  - J. Choi
+AU  - J. Chey
+AU  - J. Choi
+AU  - S. Her
+AU  - S. Kim
+AU  - H. Kim
+AU  - H. Park
+AU  - K. Lee
+PY  - 2026
+T2  - Optical Fiber Communication Conference (OFC) 2026
+DO  - 10.1364/ofc.2026.tu2d.3
+SP  - Tu2D.3
+UR  - https://doi.org/10.1364/ofc.2026.tu2d.3
+N1  -  出版書目與公開摘要
+ER  - 
+
+TY  - CONF
+ID  - REF44
+TI  - 37.3 A 2nm All-Digital 14.4Gb/s/pin LPDDR6 PHY with Quarter-Rate Clocking Architecture and Multi-Level FIFO-Based Speculative DFE
+AU  - Y. Choi
+AU  - D. Kim
+AU  - M. Kim
+AU  - S. Lee
+AU  - H. Kang
+AU  - G. Lee
+AU  - Y. Kim
+AU  - S. Kang
+AU  - H. Cho
+AU  - B. Kang
+AU  - K. Lee
+AU  - J. Song
+AU  - J. Choi
+AU  - S. Yi
+AU  - B. Koo
+AU  - K. Chae
+AU  - H. G. Rhew
+PY  - 2026
+T2  - 2026 IEEE International Solid-State Circuits Conference (ISSCC)
+DO  - 10.1109/isscc49663.2026.11409321
+SP  - 628
+EP  - 630
+UR  - https://doi.org/10.1109/isscc49663.2026.11409321
+N1  -  出版書目與公開摘要
+ER  - 
+
+TY  - CONF
+ID  - REF45
+TI  - A 45-fs rms Accumulated Jitter PLL Using Advanced Design Techniques for PCIe Gen6 Reference Clock Generation in 2 nm MBCFET Technology
+AU  - S. Datta
+AU  - A. Banerjee
+AU  - A. Tripathi
+AU  - D. Kang
+AU  - S. Lee
+AU  - H. Lim
+AU  - W. Yu
+AU  - K. Vishnu
+AU  - C. Jeong
+AU  - S. Chakkirala
+AU  - A. S. Verma
+AU  - S. Kashyap
+AU  - E. Jeevarathinam
+AU  - S. K. Pandey
+AU  - J. Ryu
+AU  - S. K. Ghosh
+PY  - 2024
+T2  - 2024 IEEE Asian Solid-State Circuits Conference (A-SSCC)
+DO  - 10.1109/a-sscc60305.2024.10849120
+SP  - 1
+EP  - 3
+UR  - https://doi.org/10.1109/a-sscc60305.2024.10849120
+N1  -  出版書目與公開摘要
+ER  - 
+
+TY  - JOUR
+ID  - REF46
+TI  - SPIPE: Differentiable SPICE-Level Co-Simulation Program for Integrated Photonics and Electronics
+AU  - Z. Gao
+AU  - J. Gu
+AU  - L. Daniel
+AU  - R. Rohrer
+AU  - D. S. Boning
+PY  - 2026
+T2  - IEEE Transactions on Computer-Aided Design of Integrated Circuits and Systems
+DO  - 10.1109/tcad.2025.3597958
+VL  - 45
+IS  - 3
+SP  - 1487
+EP  - 1498
+UR  - https://doi.org/10.1109/tcad.2025.3597958
+N1  - 2025 線上先行；2026 正式卷期 作者版本可查／出版書目與摘要
+ER  - 
+
+TY  - CONF
+ID  - REF47
+TI  - A PVT Variation- and Attack-Tolerant Metastability-Based TRNG Using Binary Search in 2nm
+AU  - Y. Youn
+AU  - Y. Lim
+AU  - J. Lee
+AU  - D. Hong
+AU  - W. Kim
+AU  - Y. S. Kwak
+AU  - K. J. Moon
+AU  - B. Kang
+AU  - S. Yoo
+PY  - 2026
+T2  - 2026 IEEE International Solid-State Circuits Conference (ISSCC)
+DO  - 10.1109/isscc49663.2026.11409323
+SP  - 440
+EP  - 442
+UR  - https://doi.org/10.1109/isscc49663.2026.11409323
+N1  -  出版書目與公開摘要
+ER  - 
+
+TY  - CONF
+ID  - REF48
+TI  - A 1.7 pJ/bit 10 MHz Calibration-Free PVT Variation and Mismatch Tolerant Latch-Based True Random Number Generator in 4 nm FinFET
+AU  - J. Lee
+AU  - J. Lee
+AU  - Y. Youn
+AU  - Y. Lim
+AU  - D. Hong
+AU  - B. Kang
+AU  - S. Yoo
+AU  - J. Y. Sim
+PY  - 2025
+T2  - 2025 Symposium on VLSI Technology and Circuits (VLSI Technology and Circuits)
+DO  - 10.23919/vlsitechnologyandcir65189.2025.11075211
+SP  - 1
+EP  - 3
+UR  - https://doi.org/10.23919/vlsitechnologyandcir65189.2025.11075211
+N1  -  出版書目與公開摘要
+ER  - 
+
+TY  - CONF
+ID  - REF49
+TI  - Broadband Optical Engine System Integration by Wafer Level Process in HPC/AI Era
+AU  - K. H. Lo
+AU  - Y. R. Liang
+AU  - T. W. Chen
+AU  - E. Lin
+AU  - S. W. Liang
+AU  - J. Y. G. Wu
+AU  - C. J. Wang
+AU  - S. W. Lu
+AU  - H. K. Chiu
+AU  - H. Hsia
+AU  - K. C. Yee
+AU  - D. C. H. Yu
+PY  - 2025
+T2  - 2025 IEEE 75th Electronic Components and Technology Conference (ECTC)
+DO  - 10.1109/ectc51687.2025.00284
+SP  - 1672
+EP  - 1675
+UR  - https://doi.org/10.1109/ectc51687.2025.00284
+N1  -  出版書目與公開摘要
+ER  - 
+
+TY  - JOUR
+ID  - REF50
+TI  - A Generalized Constraint Learning and Transfer Methodology with Net-First Graph Neural Network and Selective Topological Search for Hierarchical Analog / Mixed-Signal Circuit Layout Synthesis
+AU  - K. Chen
+AU  - G. Gielen
+PY  - 2026
+T2  - ACM Transactions on Design Automation of Electronic Systems
+DO  - 10.1145/3722556
+VL  - 31
+IS  - 3
+SP  - 1
+EP  - 32
+UR  - https://doi.org/10.1145/3722556
+N1  - 2025 線上先行；2026 正式卷期 作者版本可查／出版書目與摘要
+ER  - 
